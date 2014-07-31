@@ -1,0 +1,15 @@
+el6751 can master process data handling module
+
+1. module configuration
+
+config:
+    ec_module: ethercat                     # module name of soem ethercat master
+    ec_slave_id: 12                         # slave_id of el6751
+    slave_modules: [ module_1, module_2 ]   # names of can slave modules packets 
+                                            # will be sent to/received from
+depends: [ ethercat, module_1, module_2 ]   # put all modules on depend list
+
+2. process data for lnrk
+
+el6751 has no process data via lnrk
+
