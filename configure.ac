@@ -24,7 +24,7 @@ PKG_CHECK_MODULES([LN], [libln], [], [
                     LN_GENERATE="env -i $LN_BASE/scripts/ln_generate $LN_GENERATE_ARGS"
                    ])
 PKG_CHECK_MODULES([ROBOTKERNEL], [robotkernel], [], [
-                    RMPM_CHECK_MODULES([ROBOTKERNEL], [software.robotkernel])
+                    RMPM_CHECK_MODULES([ROBOTKERNEL], [robotkernel.robotkernel])
                    ])
 PKG_CHECK_MODULES([YAMLCPP], [yaml-cpp], [], [
                    RMPM_CHECK_MODULES([YAMLCPP], [software.yaml-cpp])])

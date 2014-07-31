@@ -37,7 +37,7 @@ using namespace beckhoff;
 
 config:
     ec_module: soem_master
-    ec_offset: 12
+    ec_slave_id: 12
     slave_modules: [ pg70_1, pg70_2, ]
  
 */
@@ -48,7 +48,7 @@ config:
  */
 el6751::el6751(const std::string& name, const YAML::Node& node) {
     _ec_mod_name = node["ec_module"].to<std::string>();
-    _ec_offset   = node["ec_offset"].to<int>();
+    _ec_slave_id = node["ec_slave_id"].to<int>();
 
     if (node.FindValue("slave_modules") != NULL) {
         // parsing slave configurations
@@ -64,7 +64,9 @@ el6751::el6751(const std::string& name, const YAML::Node& node) {
 
 //! destruction 
 el6751::~el6751() {
+    set_state(module_state_init);
 }
+
         
 //! set module state machine to defined state
 /*!
@@ -83,7 +85,7 @@ int el6751::set_state(module_state_t state) {
 
             // get el6751 process data
             process_data_t pd;
-            pd.slave_id = _ec_offset;
+            pd.slave_id = _ec_slave_id;
 
             kernel::request_cb(_ec_mod_name.c_str(), MOD_REQUEST_GET_PDIN, &pd);
             _can_pdin = (can_pdin_t *)pd.pd;

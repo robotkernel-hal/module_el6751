@@ -109,7 +109,7 @@ class el6751 {
         module_state_t   _state;            //! actual module state
 
         std::string _ec_mod_name;
-        int _ec_offset;
+        int _ec_slave_id;
 
         typedef std::list<robotkernel::module *> slave_list_t;
         slave_list_t _slaves;
