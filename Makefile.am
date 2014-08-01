@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS = -I m4 
 
 bindir = $(prefix)/bin
-libdir = $(prefix)/lib/modules/robotkernel
+libdir = $(prefix)/lib
 includedir = $(prefix)/include/el6751
 
 lib_LTLIBRARIES = libmodule_el6751.la
