@@ -1,6 +1,6 @@
 PTVERSION           = 2
-NAME                = el6751
-VERSION             = 1.0.0
+NAME                = module_el6751
+VERSION             = 3.0.0
 DESCRIPTION         = robotkernel module for beckhoff el6751
 MAINTAINER          = Robert Burger <robert.burger@dlr.de>
 DOCUMENTATION       = https://rmintra01/rmwiki/index.php/Sercos_Master_RTOS
