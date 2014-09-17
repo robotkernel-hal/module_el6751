@@ -24,6 +24,7 @@
 
 #include "el6751.h"
 #include "module_el6751.h"
+#include "robotkernel/config.h"
 #include "robotkernel/exceptions.h"
 #include <iomanip>
 #include <stdio.h>
