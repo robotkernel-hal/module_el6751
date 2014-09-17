@@ -13,3 +13,8 @@ libmodule_el6751_la_LDFLAGS  = -Wall -release $(PACKAGE_VERSION)
 include_HEADERS = el6751.h \
 				  module_el6751.h
 
+install-exec-hook:
+	#mkdir -p $(prefix)/share/message_definitions
+	#cp -r $(srcdir)/message_definitions/* $(prefix)/share/message_definitions/
+	mkdir -p $(prefix)/share/ln
+	-cp -rf $(srcdir)/share/ln/* $(prefix)/share/ln/
