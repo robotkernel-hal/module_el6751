@@ -1,6 +1,6 @@
 PTVERSION           = 2
 NAME                = module_el6751
-VERSION             = 3.0.1
+VERSION             = 3.0.2
 DESCRIPTION         = robotkernel jitter measurement module
 DOCUMENTATION       = https://rmintra01.robotic.dlr.de/wiki/robotkernel/module_jitter_measurement
 MAINTAINER          = Robert Burger <robert.burger@dlr.de>
