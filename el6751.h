@@ -83,7 +83,7 @@ class el6751 {
             uint16_t tx_cnt;
             uint16_t rx_cnt;
             uint16_t msg_cnt;
-            can_message_29bit_t *msg;
+            can_message_29bit_t msg;
         } PACK can_pdin_t;
             
         typedef struct PACK can_interface {
@@ -99,14 +99,19 @@ class el6751 {
             uint16_t tx_cnt;
             uint16_t rx_cnt;
             uint16_t msg_cnt;
-            can_message_29bit_t *msg;
+            can_message_29bit_t msg;
         } PACK can_pdout_t;
 
         can_pdin_t      *_can_pdin;         //! actual process data in - can mode
         can_pdout_t     *_can_pdout;        //! actual process data out - can mode
         can_interface_t *_can_interface;    //! actual interface data in - can mode
 
+        size_t _can_pdin_bufcnt;
+        size_t _can_pdout_bufcnt;
+
         module_state_t   _state;            //! actual module state
+
+        std::string _name;
 
         std::string _ec_mod_name;
         int _ec_slave_id;

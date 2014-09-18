@@ -48,6 +48,8 @@ config:
  * \param node yaml intialization node
  */
 el6751::el6751(const std::string& name, const YAML::Node& node) {
+    _name = name;
+
     _ec_mod_name = node["ec_module"].to<std::string>();
     _ec_slave_id = node["ec_slave_id"].to<int>();
 
@@ -61,6 +63,8 @@ el6751::el6751(const std::string& name, const YAML::Node& node) {
             _slave_module_names.push_back(mod_name); 
         }
     }
+
+    _state = module_state_init;
 }
 
 //! destruction 
@@ -91,8 +95,13 @@ int el6751::set_state(module_state_t state) {
             kernel::request_cb(_ec_mod_name.c_str(), MOD_REQUEST_GET_PDIN, &pd);
             _can_pdin = (can_pdin_t *)pd.pd;
             _can_interface = (can_interface_t *)(((uint8_t *)pd.pd)+(pd.len-sizeof(can_interface_t)));
+            _can_pdin_bufcnt = (pd.len - 6 - sizeof(can_interface_t)) / sizeof(can_message_29bit_t);
             kernel::request_cb(_ec_mod_name.c_str(), MOD_REQUEST_GET_PDOUT, &pd);
             _can_pdout = (can_pdout_t *)pd.pd;
+            _can_pdout_bufcnt = (pd.len - 6) / sizeof(can_message_29bit_t);
+
+            klog(info, "[module_el6751|%s] buffer count in: %d, out: %d\n", 
+                    _name.c_str(), _can_pdin_bufcnt, _can_pdout_bufcnt);
 
             kernel *k = kernel::get_instance();
             for (list<string>::iterator it = _slave_module_names.begin();
@@ -185,9 +194,11 @@ void el6751::_pdin_handler_can() {
     if (_can_pdin->rx_cnt == _can_pdout->rx_cnt)
         return; // no frames received
 
+//    klog(info, "[module_el6751|%s] received %d can frames\n", _name.c_str(), _can_pdin->msg_cnt);
+
     for (int i = 0; i < _can_pdin->msg_cnt; ++i) {
         // decode to std can frame
-        can::frame_t frame = _can_pdin->msg[i].to_can_frame();
+        can::frame_t frame = (&_can_pdin->msg)[i].to_can_frame();
 
         // process received frame
         for (slave_list_t::iterator it = _slaves.begin();
@@ -210,7 +221,8 @@ void el6751::_pdout_handler_can() {
     if (_can_pdout->tx_cnt != _can_pdin->tx_cnt)
         return; // no frames to send
 
-    int msg_cnt = 0, rd;
+    unsigned msg_cnt = 0;
+    int rd;
     can::frame_t frame;
 
     // process received frame
@@ -222,11 +234,15 @@ void el6751::_pdout_handler_can() {
         if (rd == 0)
             continue; // next slave    
 
-        can_message_29bit_t& msg = _can_pdout->msg[msg_cnt++];
+        can_message_29bit_t& msg = (&_can_pdout->msg)[msg_cnt++];
         msg.from_can_frame(frame);
+        
+        if (msg_cnt >= _can_pdout_bufcnt)
+            break;
     }
 
     if (msg_cnt) {
+//        klog(info, "[module_el6751|%s] sending %d can frames\n", _name.c_str(), msg_cnt);
         _can_pdout->msg_cnt = msg_cnt;
         _can_pdout->tx_cnt++;
     }
