@@ -64,6 +64,7 @@ el6751::el6751(const std::string& name, const YAML::Node& node) {
         }
     }
 
+    memset(&local_can_interface, 0, sizeof(can_interface_t));
     _state = module_state_init;
 }
 
@@ -159,8 +160,8 @@ size_t el6751::write(void* buf, size_t bufsize) {
 /*!
 */
 void el6751::trigger() {
-    _pdin_handler_can();
-    _pdout_handler_can();
+    pdin_handler_can();
+    pdout_handler_can();
 }
 
 //! send a request to module
@@ -174,22 +175,31 @@ int el6751::request(int reqcode, void* ptr) {
     return 0;
 }
 
+//! check interface counters
+void el6751::check_interface() {
+#define interface_check(member) \
+    if (_can_interface->member != local_can_interface.member) {   \
+        el6751_log(module_error, _name, #member" reported: %d\n", _can_interface->member); \
+        local_can_interface.member = _can_interface->member; }
+
+    interface_check(state);
+    interface_check(error);
+    interface_check(can_state);
+    interface_check(rx_error_cnt);
+    interface_check(tx_error_cnt);
+    interface_check(diag);
+}
+
 //! process data input callback
 /*!
  * \param buf input buffer
  * \param buflen input buffer length
  */
-void el6751::_pdin_handler_can() {
+void el6751::pdin_handler_can() {
     if (!_can_pdin || !_can_interface || !_can_pdout)
         return; // no process data available
 
-    if (    _can_interface->state != 0 || _can_interface->error != 0 ||
-            _can_interface->can_state != 0 || _can_interface->rx_error_cnt != 0 ||
-            _can_interface->tx_error_cnt != 0 || _can_interface->diag != 0) {
-        printf("%s state %d, error %d, can_state %d, rx_error_cnt %d, tx_error_cnt %d, diag %d\n",
-               __func__, _can_interface->state, _can_interface->error, _can_interface->can_state,
-               _can_interface->rx_error_cnt, _can_interface->tx_error_cnt, _can_interface->diag);
-    }
+    check_interface();
 
     if (_can_pdin->rx_cnt == _can_pdout->rx_cnt)
         return; // no frames received
@@ -214,7 +224,7 @@ void el6751::_pdin_handler_can() {
     _can_pdout->rx_cnt++;
 }
 
-void el6751::_pdout_handler_can() {
+void el6751::pdout_handler_can() {
     if (!_can_pdin || !_can_interface || !_can_pdout)
         return; // no process data available
 

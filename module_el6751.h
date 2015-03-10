@@ -29,7 +29,7 @@
 #include "robotkernel/module_intf.h"
 #include "robotkernel/kernel.h"
 
-void el6751_log(robotkernel::loglevel lvl, const char *format, ...);
+void el6751_log(robotkernel::loglevel lvl, std::string mod_name, const char *format, ...);
 
 #endif // __MODULE_EL6751_H__
 

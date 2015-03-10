@@ -15,10 +15,8 @@
 using namespace robotkernel;
 using namespace std;
 
-static string mod_name = "";
-
 //! log to kernel logging facility
-void el6751_log(robotkernel::loglevel lvl, const char *format, ...) {
+void el6751_log(robotkernel::loglevel lvl, string mod_name, const char *format, ...) {
     char buf[1024];
 
     // format argument list
@@ -77,24 +75,23 @@ size_t mod_write(MODULE_HANDLE hdl, void* buf, size_t bufsize) {
 */
 MODULE_HANDLE mod_configure(const char* name, const char* config) {
     beckhoff::el6751 *el6751;
-    mod_name = string(name);
 
     // open config
     std::stringstream stream(config);
     YAML::Parser parser(stream);
     YAML::Node doc;
 
-    el6751_log(info, "build by: %s@%s\n", BUILD_USER, BUILD_HOST);
-    el6751_log(info, "build date: %s\n", BUILD_DATE);
+    el6751_log(info, name, "build by: %s@%s\n", BUILD_USER, BUILD_HOST);
+    el6751_log(info, name, "build date: %s\n", BUILD_DATE);
 
     if (!parser.GetNextDocument(doc)) {
-        el6751_log(error, "parsing config file\n");
+        el6751_log(error, name, "parsing config file\n");
         return (MODULE_HANDLE)NULL;
     }
     
     el6751 = new beckhoff::el6751(name, doc);
     if (!el6751) {
-        el6751_log(error, "cannot allocate memory");
+        el6751_log(error, name, "cannot allocate memory");
         return (MODULE_HANDLE)NULL;
     }
 

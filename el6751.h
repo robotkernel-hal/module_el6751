@@ -102,6 +102,8 @@ class el6751 {
             can_message_29bit_t msg;
         } PACK can_pdout_t;
 
+        can_interface_t local_can_interface;//! local copy of caninterface 
+
         can_pdin_t      *_can_pdin;         //! actual process data in - can mode
         can_pdout_t     *_can_pdout;        //! actual process data out - can mode
         can_interface_t *_can_interface;    //! actual interface data in - can mode
@@ -173,19 +175,22 @@ class el6751 {
         void trigger();
         
     private:
-        //! process data input callback
-        /*!
-         * \param buf input buffer
-         * \param buflen input buffer length
-         */
-        void _pdin_handler_can();
+        //! check interface counters
+        void check_interface();
 
         //! process data input callback
         /*!
          * \param buf input buffer
          * \param buflen input buffer length
          */
-        void _pdout_handler_can();
+        void pdin_handler_can();
+
+        //! process data input callback
+        /*!
+         * \param buf input buffer
+         * \param buflen input buffer length
+         */
+        void pdout_handler_can();
 };
 
 }; // namespace beckhoff
