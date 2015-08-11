@@ -28,6 +28,7 @@
 
 #include "robotkernel/kernel.h"
 #include "robotkernel/module.h"
+#include "robotkernel/module_base.h"
 #include "robotkernel/module_intf.h"
 
 #define PACK __attribute__((__packed__)) 
@@ -47,7 +48,7 @@ typedef struct PACK frame {
 
 namespace beckhoff {
 
-class el6751 {    
+class el6751 : public robotkernel::module_base {    
     public:        
         //! el6751 specific can message - 29 bit cobid format
         typedef struct PACK can_message_29bit {
@@ -111,10 +112,6 @@ class el6751 {
         size_t _can_pdin_bufcnt;
         size_t _can_pdout_bufcnt;
 
-        module_state_t   _state;            //! actual module state
-
-        std::string _name;
-
         std::string _ec_mod_name;
         int _ec_slave_id;
 
@@ -132,42 +129,12 @@ class el6751 {
         //! destruction 
         ~el6751();
 
-        //! cyclic process data read
-        /*!
-          \param buf process data buffer
-          \param bufsize size of process data buffer
-          \return size of read bytes
-          */
-        size_t read(void* buf, size_t bufsize);
-
-        //! cyclic process data write
-        /*!
-          \param buf process data buffer
-          \param bufsize size of process data buffer
-          \return size of written bytes
-          */
-        size_t write(void* buf, size_t bufsize);
-
         //! set module state machine to defined state
         /*!
           \param state requested state
           \return success or failure
           */
         int set_state(module_state_t state);
-
-        //! get module state machine state
-        /*!
-          \return current state
-          */
-        module_state_t get_state();
-
-        //! send a request to module
-        /*!
-          \param reqcode request code
-          \param ptr pointer to request structure
-          \return success or failure
-          */
-        int request(int reqcode, void* ptr);
 
         //! module trigger callback
         /*!

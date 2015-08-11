@@ -23,12 +23,12 @@
  */
 
 #include "el6751.h"
-#include "module_el6751.h"
-#include "robotkernel/config.h"
 #include "robotkernel/exceptions.h"
 #include <iomanip>
 #include <stdio.h>
 #include <string.h>
+
+MODULE_DEF(module_el6751, beckhoff::el6751)
 
 using namespace std;
 using namespace robotkernel;
@@ -47,9 +47,8 @@ config:
 /*!
  * \param node yaml intialization node
  */
-el6751::el6751(const std::string& name, const YAML::Node& node) {
-    _name = name;
-
+el6751::el6751(const std::string& name, const YAML::Node& node) 
+    : module_base("module_el6751", name) {
     _ec_mod_name = node["ec_module"].to<std::string>();
     _ec_slave_id = node["ec_slave_id"].to<int>();
 
@@ -65,7 +64,7 @@ el6751::el6751(const std::string& name, const YAML::Node& node) {
     }
 
     memset(&local_can_interface, 0, sizeof(can_interface_t));
-    _state = module_state_init;
+    this->state = module_state_init;
 }
 
 //! destruction 
@@ -86,7 +85,7 @@ int el6751::set_state(module_state_t state) {
             _slaves.clear();
             break;
         case module_state_safeop: {
-            if (_state >= state)
+            if (this->state >= state)
                 break; // old state was op or safeop ... nothing to do
 
             // get el6751 process data
@@ -101,8 +100,8 @@ int el6751::set_state(module_state_t state) {
             _can_pdout = (can_pdout_t *)pd.pd;
             _can_pdout_bufcnt = (pd.len - 6) / sizeof(can_message_29bit_t);
 
-            klog(info, "[module_el6751|%s] buffer count in: %d, out: %d\n", 
-                    _name.c_str(), _can_pdin_bufcnt, _can_pdout_bufcnt);
+            log(info, "buffer count in: %d, out: %d\n",
+                    _can_pdin_bufcnt, _can_pdout_bufcnt);
 
             kernel *k = kernel::get_instance();
             for (list<string>::iterator it = _slave_module_names.begin();
@@ -122,38 +121,8 @@ int el6751::set_state(module_state_t state) {
             break;
     }
 
-    _state = state;
+    this->state = state;
     return state;
-}
-
-//! get module state machine state
-/*!
-  \return current state
-  */
-module_state_t el6751::get_state() {
-    return _state;
-}
-
-//! cyclic process data read
-/*!
-  \param buf process data buffer
-  \param bufsize size of process data buffer
-  \return size of read bytes
-  */
-size_t el6751::read(void* buf, size_t bufsize) {
-    // nothing to read
-    return 0;
-}
-
-//! cyclic process data write
-/*!
-  \param buf process data buffer
-  \param bufsize size of process data buffer
-  \return size of written bytes
-  */
-size_t el6751::write(void* buf, size_t bufsize) {
-    // nothing to write
-    return 0;
 }
 
 //! module trigger callback
@@ -164,22 +133,11 @@ void el6751::trigger() {
     pdout_handler_can();
 }
 
-//! send a request to module
-/*!
-  \param reqcode request code
-  \param ptr pointer to request structure
-  \return success or failure
-  */
-int el6751::request(int reqcode, void* ptr) {
-
-    return 0;
-}
-
 //! check interface counters
 void el6751::check_interface() {
 #define interface_check(member) \
     if (_can_interface->member != local_can_interface.member) {   \
-        el6751_log(module_error, _name, #member" reported: %d\n", _can_interface->member); \
+        log(module_error, #member" reported: %d\n", _can_interface->member); \
         local_can_interface.member = _can_interface->member; }
 
     interface_check(state);
