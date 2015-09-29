@@ -24,6 +24,7 @@
 
 #include "el6751.h"
 #include "robotkernel/exceptions.h"
+#include "robotkernel/helpers.h"
 #include <iomanip>
 #include <stdio.h>
 #include <string.h>
@@ -48,17 +49,17 @@ config:
  * \param node yaml intialization node
  */
 el6751::el6751(const std::string& name, const YAML::Node& node) 
-    : module_base("module_el6751", name) {
-    _ec_mod_name = node["ec_module"].to<std::string>();
-    _ec_slave_id = node["ec_slave_id"].to<int>();
+    : module_base("module_el6751", name, node) {
+    _ec_mod_name = get_as<string>(node, "ec_module");
+    _ec_slave_id = get_as<int>(node, "ec_slave_id");
 
-    if (node.FindValue("slave_modules") != NULL) {
+    if (node["slave_modules"]) {
         // parsing slave configurations
         const YAML::Node& slave_modules = node["slave_modules"];
-        for (YAML::Iterator it = slave_modules.begin();
+        for (YAML::const_iterator it = slave_modules.begin();
                 it != slave_modules.end(); ++it) {
             
-            std::string mod_name = it->to<std::string>();
+            std::string mod_name = it->as<std::string>();
             _slave_module_names.push_back(mod_name); 
         }
     }
@@ -137,7 +138,7 @@ void el6751::trigger() {
 void el6751::check_interface() {
 #define interface_check(member) \
     if (_can_interface->member != local_can_interface.member) {   \
-        log(module_error, #member" reported: %d\n", _can_interface->member); \
+        log(error, #member" reported: %d\n", _can_interface->member); \
         local_can_interface.member = _can_interface->member; }
 
     interface_check(state);
