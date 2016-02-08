@@ -140,7 +140,9 @@ class el6751 : public robotkernel::module_base {
         /*!
         */
         void trigger();
-        
+
+        int request(int reqcode, void* ptr);
+	
     private:
         //! check interface counters
         void check_interface();

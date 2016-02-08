@@ -217,3 +217,7 @@ void el6751::pdout_handler_can() {
     }
 }
 
+int el6751::request(int reqcode, void* ptr) {
+	log(info, "el6751 does not implement request %#x(%#x)\n", reqcode, ptr);
+	return 0;
+}
