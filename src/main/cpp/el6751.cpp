@@ -107,7 +107,7 @@ int el6751::set_state(module_state_t state) {
             kernel *k = kernel::get_instance();
             for (list<string>::iterator it = _slave_module_names.begin();
                     it != _slave_module_names.end(); ++it) {
-                module *m = k->get_module((*it).c_str());
+                kernel::sp_module_t m = k->get_module((*it).c_str());
 
                 if (!m)
                     throw str_exception("[module_el6751] module not found %s\n", it->c_str());
@@ -172,7 +172,7 @@ void el6751::pdin_handler_can() {
         // process received frame
         for (slave_list_t::iterator it = _slaves.begin();
                 it != _slaves.end(); ++it) {
-            module *m = *it;
+            kernel::sp_module_t m = *it;
 
             if (m->write((char *)&frame, sizeof(frame)))
                 break; // frames should only be processed once
@@ -197,7 +197,7 @@ void el6751::pdout_handler_can() {
     // process received frame
     for (slave_list_t::iterator it = _slaves.begin();
             it != _slaves.end(); ++it) {
-        module *m = *it;
+        kernel::sp_module_t m = *it;
         rd = m->read((char *)&frame, sizeof(frame));
 
         if (rd == 0)

@@ -115,7 +115,7 @@ class el6751 : public robotkernel::module_base {
         std::string _ec_mod_name;
         int _ec_slave_id;
 
-        typedef std::list<robotkernel::module *> slave_list_t;
+        typedef std::list<robotkernel::kernel::sp_module_t> slave_list_t;
         slave_list_t _slaves;
 
         std::list<std::string> _slave_module_names; //! name of slave modules
