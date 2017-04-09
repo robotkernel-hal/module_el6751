@@ -33,6 +33,7 @@ MODULE_DEF(module_el6751, beckhoff::el6751)
 
 using namespace std;
 using namespace robotkernel;
+using namespace string_util;
 using namespace beckhoff;
         
 /*
