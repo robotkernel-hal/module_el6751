@@ -81,16 +81,61 @@ el6751::~el6751() {
   \return success or failure
   */
 int el6751::set_state(module_state_t state) {            
-    switch (state) {
-        case module_state_init:
-        case module_state_preop:
-            _slaves.clear();
-            break;
-        case module_state_safeop: {
-            if (this->state >= state)
-                break; // old state was op or safeop ... nothing to do
+    kernel& k = *kernel::get_instance();
 
-            // get el6751 process data
+    // get transition
+    uint32_t transition = GEN_STATE(this->state, state);
+
+    switch (transition) {
+        case op_2_safeop:
+        case op_2_preop:
+        case op_2_init:
+        case op_2_boot:
+            // ====> stop sending commands
+            if (state == module_state_safeop)
+                break;
+        case safeop_2_preop:
+        case safeop_2_init:
+        case safeop_2_boot:
+            // ====> stop receiving measurements
+            if (state == module_state_preop)
+                break;
+        case preop_2_init:
+        case preop_2_boot:
+            // ====> deinit devices
+            _slaves.clear();
+        case init_2_init:
+            // ====> do nothing
+            if (state == module_state_init)
+                break;
+        case init_2_boot:
+            break;
+        case boot_2_init:
+        case boot_2_preop:
+        case boot_2_safeop:
+        case boot_2_op:
+            // ====> do nothing
+            if (state == module_state_init)
+                break;
+        case init_2_op:
+        case init_2_safeop:
+        case init_2_preop:
+            // ====> get device modules
+            for (list<string>::iterator it = _slave_module_names.begin();
+                    it != _slave_module_names.end(); ++it) {
+                kernel::sp_module_t m = k.get_module((*it).c_str());
+
+                if (!m)
+                    throw str_exception("[module_el6751] module not found %s\n", it->c_str());
+
+                _slaves.push_back(m);
+            }
+
+            if (state == module_state_preop)
+                break;
+        case preop_2_op:
+        case preop_2_safeop:
+            // ====> get el6751 process data
             process_data_t pd;
             pd.slave_id = _ec_slave_id;
 
@@ -105,34 +150,41 @@ int el6751::set_state(module_state_t state) {
             log(info, "buffer count in: %d, out: %d\n",
                     _can_pdin_bufcnt, _can_pdout_bufcnt);
 
-            kernel *k = kernel::get_instance();
-            for (list<string>::iterator it = _slave_module_names.begin();
-                    it != _slave_module_names.end(); ++it) {
-                kernel::sp_module_t m = k->get_module((*it).c_str());
-
-                if (!m)
-                    throw str_exception("[module_el6751] module not found %s\n", it->c_str());
-
-                _slaves.push_back(m);
-            }
+            if (state == module_state_safeop)
+                break;
+        case safeop_2_op:
+            // ====> start sending commands
             break;
-        }
-        case module_state_op:
+        case op_2_op:
+        case safeop_2_safeop:
+        case preop_2_preop:
+            // ====> do nothing
             break;
+
         default:
             break;
     }
 
-    this->state = state;
-    return state;
+    return (this->state = state);
 }
 
 //! module trigger callback
 /*!
 */
 void el6751::trigger() {
-    pdin_handler_can();
-    pdout_handler_can();
+    switch (state) {
+        default: 
+            break;
+        case module_state_safeop:
+        case module_state_op:
+            pdin_handler_can();
+
+            if (state == module_state_safeop)
+                break;
+
+            pdout_handler_can();
+            break;
+    }
 }
 
 //! check interface counters
