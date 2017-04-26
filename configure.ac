@@ -27,7 +27,7 @@ m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR], [pkgconfigdir='${libdir}/pkgconfig'
 
 # Check dependencies
 PKG_CHECK_MODULES([ROBOTKERNEL], [robotkernel])
-PKG_CHECK_MODULES([LIBETHERCAT], [libethercat])
+PKG_CHECK_MODULES([YAML_CPP], [yaml-cpp])
 PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util])
 
 # Checks for header files.
