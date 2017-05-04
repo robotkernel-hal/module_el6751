@@ -105,20 +105,14 @@ class el6751 : public robotkernel::module_base {
 
         can_interface_t local_can_interface;//! local copy of caninterface 
 
-        can_pdin_t      *_can_pdin;         //! actual process data in - can mode
-        can_pdout_t     *_can_pdout;        //! actual process data out - can mode
-        can_interface_t *_can_interface;    //! actual interface data in - can mode
+        robotkernel::kernel::sp_process_data_t el6751_pdin;
+        robotkernel::kernel::sp_process_data_t el6751_pdout;
 
-        size_t _can_pdin_bufcnt;
-        size_t _can_pdout_bufcnt;
-
-        std::string _ec_mod_name;
-        int _ec_slave_id;
+        std::string pd_device;                      //!< process data device, used as pd_prefix
+        std::list<std::string> slave_module_names;  //!< name of slave modules
 
         typedef std::list<robotkernel::kernel::sp_module_t> slave_list_t;
-        slave_list_t _slaves;
-
-        std::list<std::string> _slave_module_names; //! name of slave modules
+        slave_list_t slaves;
 
         //! construction
         /*!
@@ -140,26 +134,23 @@ class el6751 : public robotkernel::module_base {
         /*!
         */
         void trigger();
-
-        int request(int reqcode, void* ptr);
-	
+    
     private:
-        //! check interface counters
-        void check_interface();
+        //! process data input callback
+        /*!
+         * \param buf input buffer
+         * \param buflen input buffer length
+         */
+        void pdin_handler_can(const std::vector<uint8_t>& pdin,
+                std::vector<uint8_t>& pdout);
 
         //! process data input callback
         /*!
          * \param buf input buffer
          * \param buflen input buffer length
          */
-        void pdin_handler_can();
-
-        //! process data input callback
-        /*!
-         * \param buf input buffer
-         * \param buflen input buffer length
-         */
-        void pdout_handler_can();
+        void pdout_handler_can(const std::vector<uint8_t>& pdin,
+                std::vector<uint8_t>& pdout);
 };
 
 }; // namespace beckhoff
