@@ -1,8 +1,6 @@
-//! robotkernel module schunk el6751
+//! robotkernel module beckhoff el6751 can/canopen terminal
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * author: Robert Burger <robert.burger@dlr.de>
  */
 
 /*
@@ -48,7 +46,9 @@ typedef struct PACK frame {
 
 namespace beckhoff {
 
-class el6751 : public robotkernel::module_base {    
+class el6751 : 
+    public robotkernel::module_base
+{    
     public:        
         //! el6751 specific can message - 29 bit cobid format
         typedef struct PACK can_message_29bit {
@@ -105,13 +105,13 @@ class el6751 : public robotkernel::module_base {
 
         can_interface_t local_can_interface;//! local copy of caninterface 
 
-        robotkernel::kernel::sp_process_data_t el6751_pdin;
-        robotkernel::kernel::sp_process_data_t el6751_pdout;
+        robotkernel::sp_process_data_t el6751_pdin;
+        robotkernel::sp_process_data_t el6751_pdout;
 
         std::string pd_device;                      //!< process data device, used as pd_prefix
         std::list<std::string> slave_module_names;  //!< name of slave modules
 
-        typedef std::list<robotkernel::kernel::sp_module_t> slave_list_t;
+        typedef std::list<robotkernel::sp_module_t> slave_list_t;
         slave_list_t slaves;
 
         //! construction

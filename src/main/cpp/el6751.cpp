@@ -124,7 +124,7 @@ int el6751::set_state(module_state_t state) {
         case init_2_preop:
             // ====> get device modules
             for (auto it = slave_module_names.begin(); it != slave_module_names.end(); ++it) {
-                kernel::sp_module_t m = k.get_module((*it).c_str());
+                sp_module_t m = k.get_module((*it).c_str());
 
                 if (!m)
                     throw str_exception("[module_el6751] module not found %s\n", it->c_str());
@@ -232,7 +232,7 @@ void el6751::pdin_handler_can(const std::vector<uint8_t>& pdin, std::vector<uint
 
         // process received frame
         for (auto it = slaves.begin(); it != slaves.end(); ++it) {
-            kernel::sp_module_t m = *it;
+            sp_module_t m = *it;
 
             if (m->write((char *)&frame, sizeof(frame)))
                 break; // frames should only be processed once
@@ -261,7 +261,7 @@ void el6751::pdout_handler_can(const std::vector<uint8_t>& pdin, std::vector<uin
 
     // process received frame
     for (auto it = slaves.begin(); it != slaves.end(); ++it) {
-        kernel::sp_module_t m = *it;
+        sp_module_t m = *it;
         rd = m->read((char *)&frame, sizeof(frame));
 
         if (rd == 0)
