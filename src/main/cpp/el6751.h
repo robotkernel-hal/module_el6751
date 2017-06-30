@@ -28,12 +28,16 @@
 #include "robotkernel/module.h"
 #include "robotkernel/module_base.h"
 #include "robotkernel/module_intf.h"
+#include "robotkernel/trigger_base.h"
 
 #define PACK __attribute__((__packed__)) 
 
 const static uint32_t CAN_COB_29BIT_RTR  = 0x40000000;
 
 namespace can {
+#ifdef EMACS
+}
+#endif
 
 typedef struct PACK frame {
     uint32_t hdr;
@@ -42,12 +46,20 @@ typedef struct PACK frame {
     uint8_t  data[8];
 } PACK frame_t;
 
+#ifdef EMACS
+{
+#endif
 }
 
 namespace beckhoff {
+#ifdef EMACS
+}
+#endif
 
 class el6751 : 
-    public robotkernel::module_base
+    public std::enable_shared_from_this<el6751>,
+    public robotkernel::module_base, 
+    public robotkernel::trigger_device
 {    
     public:        
         //! el6751 specific can message - 29 bit cobid format
@@ -105,8 +117,8 @@ class el6751 :
 
         can_interface_t local_can_interface;//! local copy of caninterface 
 
-        robotkernel::sp_process_data_t el6751_pdin;
-        robotkernel::sp_process_data_t el6751_pdout;
+        robotkernel::sp_process_data_device_t el6751_pdin;
+        robotkernel::sp_process_data_device_t el6751_pdout;
 
         std::string pd_device;                      //!< process data device, used as pd_prefix
         std::list<std::string> slave_module_names;  //!< name of slave modules
@@ -153,6 +165,9 @@ class el6751 :
                 std::vector<uint8_t>& pdout);
 };
 
+#ifdef EMACS
+{
+#endif
 }; // namespace beckhoff
 
 #endif // __EL6751_H__

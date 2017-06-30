@@ -1,8 +1,6 @@
 //! robotkernel module schunk el6751
 /*!
- * author: Robert Burger
- *
- * $Id$
+ * author: Robert Burger <robert.burger@dlr.de>
  */
 
 /*
@@ -37,7 +35,6 @@ using namespace std;
 using namespace robotkernel;
 using namespace string_util;
 using namespace beckhoff;
-using namespace string_util;
         
 /*
 
@@ -52,8 +49,10 @@ config:
 /*!
  * \param node yaml intialization node
  */
-el6751::el6751(const std::string& name, const YAML::Node& node) 
-    : module_base("module_el6751", name, node) {
+el6751::el6751(const std::string& name, const YAML::Node& node) :
+    module_base("module_el6751", name, node),
+    trigger_device(name, "el6751")
+{
     pd_device = get_as<string>(node, "pd_device");
 
 
@@ -100,6 +99,8 @@ int el6751::set_state(module_state_t state) {
         case safeop_2_init:
         case safeop_2_boot:
             // ====> stop receiving measurements
+            k.remove_device(shared_from_this());
+
             if (state == module_state_preop)
                 break;
         case preop_2_init:
@@ -137,8 +138,10 @@ int el6751::set_state(module_state_t state) {
         case preop_2_op:
         case preop_2_safeop: {
             // ====> get el6751 process data
-            el6751_pdin  = k.get_process_data(pd_device + ".pd.in");
-            el6751_pdout = k.get_process_data(pd_device + ".pd.out");
+            el6751_pdin  = k.get_process_data_device(pd_device);
+            el6751_pdout = k.get_process_data_device(pd_device);
+
+            k.add_device(shared_from_this());
 
             if (state == module_state_safeop)
                 break;
