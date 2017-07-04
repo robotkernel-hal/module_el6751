@@ -145,7 +145,7 @@ class el6751 :
         //! module trigger callback
         /*!
         */
-        void trigger();
+        void tick();
     
     private:
         //! process data input callback

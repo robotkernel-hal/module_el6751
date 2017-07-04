@@ -166,7 +166,7 @@ int el6751::set_state(module_state_t state) {
 //! module trigger callback
 /*!
 */
-void el6751::trigger() {
+void el6751::tick() {
     const auto& pdin  = el6751_pdin->get_read_buffer();
     auto& pdout = el6751_pdout->get_write_buffer();
 
