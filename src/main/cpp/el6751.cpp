@@ -51,9 +51,10 @@ config:
  */
 el6751::el6751(const std::string& name, const YAML::Node& node) :
     module_base("module_el6751", name, node),
-    trigger_device(name, "el6751")
+    ::trigger(name, "el6751")
 {
-    pd_device = get_as<string>(node, "pd_device");
+    pd_inputs_device  = get_as<string>(node, "pd_inputs_device");
+    pd_outputs_device = get_as<string>(node, "pd_outputs_device");
 
 
     if (node["slave_modules"]) {
@@ -138,8 +139,8 @@ int el6751::set_state(module_state_t state) {
         case preop_2_op:
         case preop_2_safeop: {
             // ====> get el6751 process data
-            el6751_pdin  = k.get_process_data_device(pd_device);
-            el6751_pdout = k.get_process_data_device(pd_device);
+            el6751_pdin  = k.get_process_data(pd_inputs_device);
+            el6751_pdout = k.get_process_data(pd_outputs_device);
 
             k.add_device(shared_from_this());
 

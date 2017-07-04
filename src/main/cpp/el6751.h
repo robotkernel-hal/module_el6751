@@ -28,7 +28,6 @@
 #include "robotkernel/module.h"
 #include "robotkernel/module_base.h"
 #include "robotkernel/module_intf.h"
-#include "robotkernel/trigger_base.h"
 
 #define PACK __attribute__((__packed__)) 
 
@@ -59,7 +58,7 @@ namespace beckhoff {
 class el6751 : 
     public std::enable_shared_from_this<el6751>,
     public robotkernel::module_base, 
-    public robotkernel::trigger_device
+    public robotkernel::trigger
 {    
     public:        
         //! el6751 specific can message - 29 bit cobid format
@@ -117,10 +116,11 @@ class el6751 :
 
         can_interface_t local_can_interface;//! local copy of caninterface 
 
-        robotkernel::sp_process_data_device_t el6751_pdin;
-        robotkernel::sp_process_data_device_t el6751_pdout;
+        robotkernel::sp_process_data_t el6751_pdin;
+        robotkernel::sp_process_data_t el6751_pdout;
 
-        std::string pd_device;                      //!< process data device, used as pd_prefix
+        std::string pd_inputs_device;               //!< process data device with inputs
+        std::string pd_outputs_device;              //!< process data device with outputs
         std::list<std::string> slave_module_names;  //!< name of slave modules
 
         typedef std::list<robotkernel::sp_module_t> slave_list_t;
