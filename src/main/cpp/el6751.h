@@ -28,6 +28,7 @@
 #include "robotkernel/module.h"
 #include "robotkernel/module_base.h"
 #include "robotkernel/module_intf.h"
+#include "robotkernel/stream.h"
 
 #define PACK __attribute__((__packed__)) 
 
@@ -121,10 +122,9 @@ class el6751 :
 
         std::string pd_inputs_device;               //!< process data device with inputs
         std::string pd_outputs_device;              //!< process data device with outputs
-        std::list<std::string> slave_module_names;  //!< name of slave modules
+        std::list<std::string> slave_stream_names;  //!< name of slave modules
 
-        typedef std::list<robotkernel::sp_module_t> slave_list_t;
-        slave_list_t slaves;
+        robotkernel::stream_map_t streams;
 
         //! construction
         /*!

@@ -41,7 +41,7 @@ using namespace beckhoff;
 config:
     ec_module: soem_master
     ec_slave_id: 12
-    slave_modules: [ pg70_1, pg70_2, ]
+    slave_streams: [ pg70_1.packet.stream, pg70_2.packet.stream, ]
  
 */
 
@@ -57,14 +57,11 @@ el6751::el6751(const std::string& name, const YAML::Node& node) :
     pd_outputs_device = get_as<string>(node, "pd_outputs_device");
 
 
-    if (node["slave_modules"]) {
+    if (node["slave_straems"]) {
         // parsing slave configurations
-        const YAML::Node& slave_modules = node["slave_modules"];
-        for (YAML::const_iterator it = slave_modules.begin();
-                it != slave_modules.end(); ++it) {
-            
-            std::string mod_name = it->as<std::string>();
-            slave_module_names.push_back(mod_name); 
+        for (const auto& stream_node : node["slave_strems"]) {
+            std::string mod_name = stream_node.as<std::string>();
+            slave_stream_names.push_back(mod_name); 
         }
     }
 
@@ -107,7 +104,7 @@ int el6751::set_state(module_state_t state) {
         case preop_2_init:
         case preop_2_boot:
             // ====> deinit devices
-            slaves.clear();
+            streams.clear();
         case init_2_init:
             // ====> do nothing
             if (state == module_state_init)
@@ -125,13 +122,13 @@ int el6751::set_state(module_state_t state) {
         case init_2_safeop:
         case init_2_preop:
             // ====> get device modules
-            for (auto it = slave_module_names.begin(); it != slave_module_names.end(); ++it) {
-                sp_module_t m = k.get_module((*it).c_str());
+            for (const auto& name : slave_stream_names) {
+                sp_stream_t m = k.get_stream(name);
 
                 if (!m)
-                    throw str_exception("[module_el6751] module not found %s\n", it->c_str());
+                    throw str_exception("[module_el6751] stream %s not found\n", name.c_str());
 
-                slaves.push_back(m);
+                streams[name] = m;
             }
 
             if (state == module_state_preop)
@@ -167,18 +164,19 @@ int el6751::set_state(module_state_t state) {
 /*!
 */
 void el6751::tick() {
-    const auto& pdin  = el6751_pdin->get_read_buffer();
-    auto& pdout = el6751_pdout->get_write_buffer();
+    el6751_pdin->swap_front();
+    const auto& pdin = el6751_pdin->front_buffer();
 
-    static int testcnt = 0;
+    auto& pdout = el6751_pdout->back_buffer();
+
+    //static int testcnt = 0;
 
 //    if ((++testcnt % 1000) == 0) {
 //        log(info, "el6751: %p : %d\n", el6751_pdin.get(), el6751_pdin.use_count());
-
-    for (int i = 0; i < pdin.size(); ++i)
-        printf("%02X", pdin[i]);
-    printf("\n");
-
+//
+//    for (int i = 0; i < pdin.size(); ++i)
+//        printf("%02X", pdin[i]);
+//    printf("\n");
 //    }
     return;
     switch (state) {
@@ -188,13 +186,10 @@ void el6751::tick() {
         case module_state_op:
             pdin_handler_can(pdin, pdout);
 
-            if (state == module_state_safeop) {
-                el6751_pdout->swap_buffers();
-                break;
-            }
+            if (state == module_state_op) 
+                pdout_handler_can(pdin, pdout);
 
-            pdout_handler_can(pdin, pdout);
-            el6751_pdout->swap_buffers();
+            el6751_pdout->swap_back();
             break;
     }
 }
@@ -235,10 +230,8 @@ void el6751::pdin_handler_can(const std::vector<uint8_t>& pdin, std::vector<uint
         can::frame_t frame = (&can_pdin->msg)[i].to_can_frame();
 
         // process received frame
-        for (auto it = slaves.begin(); it != slaves.end(); ++it) {
-            sp_module_t m = *it;
-
-            if (m->write((char *)&frame, sizeof(frame)))
+        for (const auto& kv : streams) {
+            if (kv.second->write((char *)&frame, sizeof(frame)))
                 break; // frames should only be processed once
         }
     }
@@ -264,8 +257,8 @@ void el6751::pdout_handler_can(const std::vector<uint8_t>& pdin, std::vector<uin
     can::frame_t frame;
 
     // process received frame
-    for (auto it = slaves.begin(); it != slaves.end(); ++it) {
-        sp_module_t m = *it;
+    for (const auto& kv : streams) {
+        sp_stream_t m = kv.second;
         rd = m->read((char *)&frame, sizeof(frame));
 
         if (rd == 0)
