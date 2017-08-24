@@ -148,21 +148,25 @@ class el6751 :
         void tick();
     
     private:
-        //! process data input callback
+        //! Process data input callback.
         /*!
-         * \param buf input buffer
-         * \param buflen input buffer length
+         * \param[in]       pdin      Pointer to process data inputs.
+         * \param[in]       pdin_len  Length of process data inputs.
+         * \param[in,out]   pdout     Pointer to process data outputs.
+         * \param[in]       pdout_len Length of process data outputs.
          */
-        void pdin_handler_can(const std::vector<uint8_t>& pdin,
-                std::vector<uint8_t>& pdout);
+        void pdin_handler_can(uint8_t *pdin, size_t pdin_len,
+                uint8_t *pdout, size_t pdout_len);
 
-        //! process data input callback
+        //! Process data input callback.
         /*!
-         * \param buf input buffer
-         * \param buflen input buffer length
+         * \param[in]       pdin      Pointer to process data inputs.
+         * \param[in]       pdin_len  Length of process data inputs.
+         * \param[in,out]   pdout     Pointer to process data outputs.
+         * \param[in]       pdout_len Length of process data outputs.
          */
-        void pdout_handler_can(const std::vector<uint8_t>& pdin,
-                std::vector<uint8_t>& pdout);
+        void pdout_handler_can(uint8_t *pdin, size_t pdin_len, 
+                uint8_t *pdout, size_t pdout_len);
 };
 
 #ifdef EMACS

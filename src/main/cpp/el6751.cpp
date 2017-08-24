@@ -164,49 +164,37 @@ int el6751::set_state(module_state_t state) {
 /*!
 */
 void el6751::tick() {
-    el6751_pdin->swap_front();
-    const auto& pdin = el6751_pdin->front_buffer();
+    auto pdin_ptr   = el6751_pdin->pop();
+    auto pdout_ptr  = el6751_pdout->next();
 
-    auto& pdout = el6751_pdout->back_buffer();
-
-    //static int testcnt = 0;
-
-//    if ((++testcnt % 1000) == 0) {
-//        log(info, "el6751: %p : %d\n", el6751_pdin.get(), el6751_pdin.use_count());
-//
-//    for (int i = 0; i < pdin.size(); ++i)
-//        printf("%02X", pdin[i]);
-//    printf("\n");
-//    }
-    return;
     switch (state) {
         default: 
             break;
         case module_state_safeop:
         case module_state_op:
-            pdin_handler_can(pdin, pdout);
+            pdin_handler_can(pdin_ptr, el6751_pdin->length, 
+                    pdout_ptr, el6751_pdout->length);
 
             if (state == module_state_op) 
-                pdout_handler_can(pdin, pdout);
+                pdout_handler_can(pdin_ptr, el6751_pdin->length, 
+                        pdout_ptr, el6751_pdout->length);
 
-            el6751_pdout->swap_back();
+            el6751_pdout->push();
             break;
     }
 }
 
-//! process data input callback
-/*!
- * \param buf input buffer
- * \param buflen input buffer length
- */
-void el6751::pdin_handler_can(const std::vector<uint8_t>& pdin, std::vector<uint8_t>& pdout) {
-    if (    (pdin.size() < sizeof(can_interface_t)) ||
-            (pdout.size() == 0))
+// process data input callback
+void el6751::pdin_handler_can(uint8_t *pdin, size_t pdin_len, 
+        uint8_t *pdout, size_t pdout_len) 
+{
+    if (    (pdin_len < sizeof(can_interface_t)) ||
+            (pdout_len == 0))
         return; // no process data available
 
     auto can_pdin  = (can_pdin_t *)&pdin[0];
     auto can_pdout = (can_pdout_t *)&pdout[0];
-    auto can_interface = (can_interface_t *)&(pdout[pdout.size() - sizeof(can_interface_t)]);
+    auto can_interface = (can_interface_t *)&(pdout[pdout_len - sizeof(can_interface_t)]);
     
 #define interface_check(member) \
     if (can_interface->member != local_can_interface.member) {   \
@@ -240,14 +228,16 @@ void el6751::pdin_handler_can(const std::vector<uint8_t>& pdin, std::vector<uint
     can_pdout->rx_cnt++;
 }
 
-void el6751::pdout_handler_can(const std::vector<uint8_t>& pdin, std::vector<uint8_t>& pdout) {
-    if (    (pdin.size() < sizeof(can_interface_t)) ||
-            (pdout.size() == 0))
+void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len, 
+                uint8_t *pdout, size_t pdout_len)
+{
+    if (    (pdin_len < sizeof(can_interface_t)) ||
+            (pdout_len == 0))
         return; // no process data available
 
     auto can_pdin  = (can_pdin_t *)&pdin[0];
     auto can_pdout = (can_pdout_t *)&pdout[0];
-    unsigned can_pdout_bufcnt = (pdout.size() - 6) / sizeof(can_message_29bit_t);
+    unsigned can_pdout_bufcnt = (pdout_len - 6) / sizeof(can_message_29bit_t);
 
     if (can_pdout->tx_cnt != can_pdin->tx_cnt)
         return; // no frames to send
