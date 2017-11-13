@@ -13,7 +13,6 @@ defines
 module_el6751_base: %(dirname %(dirname %(CURDIR)))
 module_el6751_base_type: %(ifexists "%(module_el6751_base)/lib/libmodule_el6751.so", "local_install", "rmpm_release")
 module_el6751_libdir: %(ifeq "%(module_el6751_base_type)", "local_install", "%(module_el6751_base)/lib", "%(module_el6751_base)/lib/$(ARCH)")
-#add_message_definition_dir: %(module_el6751_base)/share/message_definitions
 
 ifndef rk_modules: rk_modules: ""
 rk_modules: %(rk_modules):%(module_el6751_libdir)

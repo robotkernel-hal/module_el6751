@@ -26,9 +26,7 @@ m4_ifdef([PKG_PROG_PKG_CONFIG], [PKG_PROG_PKG_CONFIG])
 m4_ifdef([PKG_INSTALLDIR], [PKG_INSTALLDIR], [pkgconfigdir='${libdir}/pkgconfig' AC_SUBST([pkgconfigdir])])
 
 # Check dependencies
-PKG_CHECK_MODULES([ROBOTKERNEL], [robotkernel])
-PKG_CHECK_MODULES([YAML_CPP], [yaml-cpp])
-PKG_CHECK_MODULES([LIBSTRING_UTIL], [libstring_util])
+RK_CHECK_MODULES
 
 # Checks for header files.
 AC_CHECK_HEADERS([stdlib.h string.h])
@@ -43,6 +41,7 @@ AC_CHECK_FUNCS([strdup])
 AC_CHECK_LIB(dl, dlopen)
 
 AC_CONFIG_FILES([Makefile src/main/cpp/Makefile module_el6751.pc])
+AC_CONFIG_FILES([share/ln/module_el6751.inc.lnc], [cp share/ln/module_el6751.inc.lnc ${ac_abs_top_srcdir}/share/ln/])
 
 AC_OUTPUT
 
