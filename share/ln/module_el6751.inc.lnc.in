@@ -15,6 +15,6 @@ module_el6751_libdir:        %(subst "${exec_prefix}/", "", "@libdir@")
 module_el6751_type:          %(ifexists "%(module_el6751_base)/%(module_el6751_libdir)/libmodule_el6751.so", "local_install", "rmpm_release")
 module_el6751_library_path:  %(ifeq "%(module_el6751_type)", "local_install", "%(module_el6751_base)/%(module_el6751_libdir)", "%(module_el6751_base)/lib/$(ARCH)")
 
-ifndef rk_modules: rk_modules: ""
-rk_modules: %(rk_modules):%(module_el6751_libdir)
+ifndef rk_library_path: rk_library_path: ""
+rk_library_path: %(rk_library_path):%(module_el6751_libdir)
 
