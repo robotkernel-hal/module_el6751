@@ -59,7 +59,9 @@ namespace beckhoff {
 class el6751 : 
     public std::enable_shared_from_this<el6751>,
     public robotkernel::module_base, 
-    public robotkernel::trigger
+    public robotkernel::trigger, 
+    public robotkernel::pd_consumer,
+    public robotkernel::pd_provider
 {    
     public:        
         //! el6751 specific can message - 29 bit cobid format
@@ -118,7 +120,11 @@ class el6751 :
         can_interface_t local_can_interface;//! local copy of caninterface 
 
         robotkernel::sp_process_data_t el6751_pdin;
+        robotkernel::sp_trigger_t el6751_pdin_trigger;
+        std::size_t el6751_pdin_hash;
         robotkernel::sp_process_data_t el6751_pdout;
+        robotkernel::sp_trigger_t el6751_pdout_trigger;
+        std::size_t el6751_pdout_hash;
 
         std::string pd_inputs_device;               //!< process data device with inputs
         std::string pd_outputs_device;              //!< process data device with outputs

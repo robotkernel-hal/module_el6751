@@ -39,9 +39,9 @@ using namespace beckhoff;
 /*
 
 config:
-    ec_module: soem_master
-    ec_slave_id: 12
-    slave_streams: [ pg70_1.packet.stream, pg70_2.packet.stream, ]
+  pd_inputs_device: ecat.slave_2.inputs.pd
+  pd_outputs_device: ecat.slave_2.outputs.pd
+  slave_streams: [ pg70_1.packet.stream, pg70_2.packet.stream, ]
  
 */
 
@@ -50,16 +50,17 @@ config:
  * \param node yaml intialization node
  */
 el6751::el6751(const std::string& name, const YAML::Node& node) :
-    module_base("module_el6751", name, node),
-    ::trigger(name, "el6751")
+    module_base("module_el6751", name, node), trigger(name, "el6751"),
+    pd_consumer(name + ".inputs"), pd_provider(name + ".outputs"),
+    el6751_pdin(nullptr), el6751_pdin_trigger(nullptr), el6751_pdin_hash(0),
+    el6751_pdout(nullptr), el6751_pdout_trigger(nullptr), el6751_pdout_hash(0)
 {
     pd_inputs_device  = get_as<string>(node, "pd_inputs_device");
     pd_outputs_device = get_as<string>(node, "pd_outputs_device");
 
-
-    if (node["slave_straems"]) {
+    if (node["slave_streams"]) {
         // parsing slave configurations
-        for (const auto& stream_node : node["slave_strems"]) {
+        for (const auto& stream_node : node["slave_streams"]) {
             std::string mod_name = stream_node.as<std::string>();
             slave_stream_names.push_back(mod_name); 
         }
@@ -99,6 +100,19 @@ int el6751::set_state(module_state_t state) {
             // ====> stop receiving measurements
             k.remove_device(shared_from_this());
 
+            if (el6751_pdin_trigger)
+                el6751_pdin_trigger->remove_trigger(shared_from_this());
+
+            el6751_pdin->reset_consumer(el6751_pdin_hash);
+            el6751_pdin_hash = 0;
+            el6751_pdin = nullptr;
+            el6751_pdin_trigger = nullptr;            
+
+            el6751_pdout->reset_provider(el6751_pdout_hash);
+            el6751_pdout_hash = 0;
+            el6751_pdout = nullptr;
+            el6751_pdout_trigger = nullptr;
+
             if (state == module_state_preop)
                 break;
         case preop_2_init:
@@ -136,8 +150,17 @@ int el6751::set_state(module_state_t state) {
         case preop_2_op:
         case preop_2_safeop: {
             // ====> get el6751 process data
-            el6751_pdin  = k.get_process_data(pd_inputs_device);
+            el6751_pdin = k.get_process_data(pd_inputs_device);
+            el6751_pdin_hash = el6751_pdin->set_consumer(shared_from_this());
+            if (el6751_pdin->clk_device != "") {
+                el6751_pdin_trigger = k.get_trigger(el6751_pdin->clk_device);
+                el6751_pdin_trigger->add_trigger(shared_from_this());
+            }
+
             el6751_pdout = k.get_process_data(pd_outputs_device);
+            el6751_pdout_hash = el6751_pdout->set_consumer(shared_from_this());
+            if (el6751_pdout->clk_device != "")
+                el6751_pdout_trigger = k.get_trigger(el6751_pdout->clk_device);
 
             k.add_device(shared_from_this());
 
@@ -164,8 +187,8 @@ int el6751::set_state(module_state_t state) {
 /*!
 */
 void el6751::tick() {
-    auto pdin_ptr   = el6751_pdin->pop();
-    auto pdout_ptr  = el6751_pdout->next();
+    auto pdin_ptr   = el6751_pdin->pop(el6751_pdin_hash);
+    auto pdout_ptr  = el6751_pdout->next(el6751_pdout_hash);
 
     switch (state) {
         default: 
@@ -179,7 +202,10 @@ void el6751::tick() {
                 pdout_handler_can(pdin_ptr, el6751_pdin->length, 
                         pdout_ptr, el6751_pdout->length);
 
-            el6751_pdout->push();
+            el6751_pdout->push(el6751_pdout_hash);
+            if (el6751_pdout_trigger)
+                el6751_pdout_trigger->trigger_modules();
+
             break;
     }
 }
