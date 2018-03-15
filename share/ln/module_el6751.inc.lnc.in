@@ -12,9 +12,8 @@ requires_version 0.2.43
 defines
 module_el6751_base: %(dirname %(dirname %(CURDIR)))
 module_el6751_libdir:        %(subst "${exec_prefix}/", "", "@libdir@")
-module_el6751_type:          %(ifexists "%(module_el6751_base)/%(module_el6751_libdir)/libmodule_el6751.so", "local_install", "rmpm_release")
-module_el6751_library_path:  %(ifeq "%(module_el6751_type)", "local_install", "%(module_el6751_base)/%(module_el6751_libdir)", "%(module_el6751_base)/lib/$(ARCH)")
+module_el6751_type:          %(ifexists "%(module_el6751_base)/../$(ARCH)", "rmpm_release", "local_install")
+module_el6751_library_path:  %(ifeq "%(module_el6751_type)", "local_install", "%(module_el6751_base)", "%(dirname %(module_el6751_base))/$(ARCH)")
 
 ifndef rk_library_path: rk_library_path: ""
-rk_library_path: %(rk_library_path):%(module_el6751_libdir)
-
+rk_library_path: %(rk_library_path):%(module_el6751_library_path)/%(module_el6751_libdir)
