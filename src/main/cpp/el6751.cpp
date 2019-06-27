@@ -55,6 +55,9 @@ el6751::el6751(const std::string& name, const YAML::Node& node) :
     el6751_pdin(nullptr), el6751_pdin_trigger(nullptr), el6751_pdin_hash(0),
     el6751_pdout(nullptr), el6751_pdout_trigger(nullptr), el6751_pdout_hash(0)
 {
+    local_tx_cnt = 0;
+    local_rx_cnt = 0;
+
     pd_inputs_device  = get_as<string>(node, "pd_inputs_device");
     pd_outputs_device = get_as<string>(node, "pd_outputs_device");
 
@@ -158,7 +161,7 @@ int el6751::set_state(module_state_t state) {
             }
 
             el6751_pdout = k.get_process_data(pd_outputs_device);
-            el6751_pdout_hash = el6751_pdout->set_consumer(shared_from_this());
+            el6751_pdout_hash = el6751_pdout->set_provider(shared_from_this());
             if (el6751_pdout->clk_device != "")
                 el6751_pdout_trigger = k.get_trigger(el6751_pdout->clk_device);
 
@@ -198,7 +201,7 @@ void el6751::tick() {
             pdin_handler_can(pdin_ptr, el6751_pdin->length, 
                     pdout_ptr, el6751_pdout->length);
 
-            if (state == module_state_op) 
+            if (state == module_state_op)
                 pdout_handler_can(pdin_ptr, el6751_pdin->length, 
                         pdout_ptr, el6751_pdout->length);
 
@@ -234,8 +237,10 @@ void el6751::pdin_handler_can(uint8_t *pdin, size_t pdin_len,
     interface_check(tx_error_cnt);
     interface_check(diag);
 
-    if (can_pdin->rx_cnt == can_pdout->rx_cnt)
+    if (can_pdin->rx_cnt == local_rx_cnt) {
+        can_pdout->rx_cnt = local_rx_cnt;
         return; // no frames received
+    }
 
     log(verbose, "received %d can frames\n", can_pdin->msg_cnt);
 
@@ -251,7 +256,7 @@ void el6751::pdin_handler_can(uint8_t *pdin, size_t pdin_len,
     }
 
     // acknowledge received frames
-    can_pdout->rx_cnt++;
+    can_pdout->rx_cnt = ++local_rx_cnt;
 }
 
 void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len, 
@@ -263,10 +268,12 @@ void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len,
 
     auto can_pdin  = (can_pdin_t *)&pdin[0];
     auto can_pdout = (can_pdout_t *)&pdout[0];
-    unsigned can_pdout_bufcnt = (pdout_len - 6) / sizeof(can_message_29bit_t);
+    unsigned can_pdout_bufcnt = (pdout_len - 6) / sizeof(can_message_29bit_tx_t);
 
-    if (can_pdout->tx_cnt != can_pdin->tx_cnt)
+    if (can_pdout->tx_cnt != can_pdin->tx_cnt) {
+        can_pdout->tx_cnt = local_tx_cnt;
         return; // no frames to send
+    }
 
     unsigned msg_cnt = 0;
     int rd;
@@ -280,7 +287,7 @@ void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len,
         if (rd == 0)
             continue; // next slave    
 
-        can_message_29bit_t& msg = (&can_pdout->msg)[msg_cnt++];
+        can_message_29bit_tx_t& msg = (&can_pdout->msg)[msg_cnt++];
         msg.from_can_frame(frame);
         
         if (msg_cnt >= can_pdout_bufcnt)
@@ -290,7 +297,7 @@ void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len,
     if (msg_cnt) {
         log(verbose, "sending %d can frames\n", msg_cnt);
         can_pdout->msg_cnt = msg_cnt;
-        can_pdout->tx_cnt++;
+        can_pdout->tx_cnt = ++local_tx_cnt;
     }
 }
 

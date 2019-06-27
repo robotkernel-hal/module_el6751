@@ -51,6 +51,8 @@ typedef struct PACK frame {
 #endif
 }
 
+#include <arpa/inet.h>
+
 namespace beckhoff {
 #ifdef EMACS
 }
@@ -65,7 +67,25 @@ class el6751 :
 {    
     public:        
         //! el6751 specific can message - 29 bit cobid format
-        typedef struct PACK can_message_29bit {
+        typedef struct PACK can_message_29bit_tx {
+						uint16_t pad;
+            uint16_t len;
+            uint32_t cobid;
+            uint8_t data[8];
+
+            //! assign data from std can frame
+            /*!
+             * \param frame input can frame
+             */
+            void from_can_frame(can::frame_t& frame) {
+                len   = frame.dlc;
+                cobid = frame.hdr | (frame.rtr << 30);
+                //pad = frame.rtr;
+                memcpy(data, frame.data, 8);
+            }
+        } PACK can_message_29bit_tx_t;
+        
+				typedef struct PACK can_message_29bit_rx {
             uint16_t len;
             uint32_t cobid;
             uint8_t data[8];
@@ -82,25 +102,16 @@ class el6751 :
                 memcpy(frame.data, data, 8);
                 return frame;
             }
-
-            //! assign data from std can frame
-            /*!
-             * \param frame input can frame
-             */
-            void from_can_frame(can::frame_t& frame) {
-                len   = frame.dlc;
-                cobid = frame.hdr | (frame.rtr << 30);
-                memcpy(data, frame.data, 8);
-            }
-        } PACK can_message_29bit_t;
+        } PACK can_message_29bit_rx_t;
 
         typedef struct PACK can_pdin {
             uint16_t tx_cnt;
             uint16_t rx_cnt;
             uint16_t msg_cnt;
-            can_message_29bit_t msg;
+						uint16_t tmp;
+            can_message_29bit_rx_t msg;
         } PACK can_pdin_t;
-            
+
         typedef struct PACK can_interface {
             uint8_t  state;
             uint8_t  error;
@@ -114,8 +125,10 @@ class el6751 :
             uint16_t tx_cnt;
             uint16_t rx_cnt;
             uint16_t msg_cnt;
-            can_message_29bit_t msg;
+            can_message_29bit_tx_t msg;
         } PACK can_pdout_t;
+
+				uint16_t local_tx_cnt, local_rx_cnt;
 
         can_interface_t local_can_interface;//! local copy of caninterface 
 
