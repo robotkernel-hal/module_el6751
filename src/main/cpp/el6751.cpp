@@ -61,6 +61,8 @@ el6751::el6751(const std::string& name, const YAML::Node& node) :
     pd_inputs_device  = get_as<string>(node, "pd_inputs_device");
     pd_outputs_device = get_as<string>(node, "pd_outputs_device");
 
+    extended_mode     = get_as<bool>  (node, "extended_mode", true);
+
     if (node["slave_streams"]) {
         // parsing slave configurations
         for (const auto& stream_node : node["slave_streams"]) {
@@ -245,8 +247,13 @@ void el6751::pdin_handler_can(uint8_t *pdin, size_t pdin_len,
     log(verbose, "received %d can frames\n", can_pdin->msg_cnt);
 
     for (int i = 0; i < can_pdin->msg_cnt; ++i) {
+        can::frame_t frame;
+
         // decode to std can frame
-        can::frame_t frame = (&can_pdin->msg)[i].to_can_frame();
+        if (extended_mode)
+            frame = ((can_message_29bit_rx_t *)&can_pdin->msg)[i].to_can_frame();
+        else
+            frame = ((can_message_11bit_rx_t *)&can_pdin->msg)[i].to_can_frame();
 
         // process received frame
         for (const auto& kv : streams) {
@@ -268,7 +275,9 @@ void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len,
 
     auto can_pdin  = (can_pdin_t *)&pdin[0];
     auto can_pdout = (can_pdout_t *)&pdout[0];
-    unsigned can_pdout_bufcnt = (pdout_len - 6) / sizeof(can_message_29bit_tx_t);
+    unsigned can_pdout_bufcnt = extended_mode ?
+        (pdout_len - 6) / sizeof(can_message_29bit_tx_t) : 
+        (pdout_len - 6) / sizeof(can_message_11bit_tx_t);
 
     if (can_pdout->tx_cnt != can_pdin->tx_cnt) {
         can_pdout->tx_cnt = local_tx_cnt;
@@ -287,8 +296,13 @@ void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len,
         if (rd == 0)
             continue; // next slave    
 
-        can_message_29bit_tx_t& msg = (&can_pdout->msg)[msg_cnt++];
-        msg.from_can_frame(frame);
+        if (extended_mode) {
+            can_message_29bit_tx_t& msg = ((can_message_29bit_tx_t *)&can_pdout->msg)[msg_cnt++];
+            msg.from_can_frame(frame);
+        } else {
+            can_message_11bit_tx_t& msg = ((can_message_11bit_tx_t *)&can_pdout->msg)[msg_cnt++];
+            msg.from_can_frame(frame);
+        }
         
         if (msg_cnt >= can_pdout_bufcnt)
             break;
