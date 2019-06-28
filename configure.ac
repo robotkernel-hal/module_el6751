@@ -41,7 +41,6 @@ AC_CHECK_FUNCS([strdup])
 AC_CHECK_LIB(dl, dlopen)
 
 AC_CONFIG_FILES([Makefile src/main/cpp/Makefile module_el6751.pc])
-AC_CONFIG_FILES([share/ln/module_el6751.inc.lnc], [cp share/ln/module_el6751.inc.lnc ${ac_abs_top_srcdir}/share/ln/])
 
 AC_OUTPUT
 
