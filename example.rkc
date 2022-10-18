@@ -1,0 +1,36 @@
+# Configuration file for module_el6751.
+#
+# vim: ft=yaml
+
+#########################################################
+# Input process data settings.
+
+# Defines the input process data with receive CAN buffers 
+# from Beckhoff EL6751 terminal.
+pd_inputs_device: ecat.slave_12.inputs.pd
+
+# Defines the output process data with send CAN buffers 
+# from Beckhoff EL6751 terminal.
+pd_outputs_device: ecat.slave_12.outputs.pd
+
+#########################################################
+# Target stream settings.
+
+# Read and write CAN messages send and received from/to
+# Beckhoff EL6751 robotkernel stream devices.
+ slave_streams: [ 
+   wheel_left_front.heinzmann.stream, 
+   wheel_left_rear.heinzmann.stream,
+   wheel_right_front.heinzmann.stream, 
+   wheel_right_rear.heinzmann.stream ]
+
+# Attach a vtun device for CAN frames from/to
+# Beckhoff EL6751 terminal.
+#vcan_name: vcan0
+
+#########################################################
+# logging settings
+
+# Standard robotkernel module local loglevel.
+#loglevel: verbose
+
