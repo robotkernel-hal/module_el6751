@@ -1,0 +1,51 @@
+- name: el6751 wheels
+  index: 12
+
+
+#########################################################
+# Sync manager settings for CAN mode.
+sm:
+  0: { address: 0x1000, length: 1024, flags: 0x10026 }
+  1: { address: 0x1400, length: 1024, flags: 0x10022 }
+  2: { address: 0x1800, length: 166,  flags: 0x10026 }
+  3: { address: 0x2400, length: 154,  flags: 0x10022 }
+
+#########################################################
+# Init commands to put Beckhoff El6751 terminal to CAN
+# mode.
+init_cmds:
+- { type: coe, index: 0x1C32, subindex: 0, transition: 0x24, ca: 0, data: "00" }
+- { type: coe, index: 0x1C32, subindex: 1, transition: 0x24, ca: 0, data: "0100" }      # sync mode, 1 - sm2 event, 3 - sync0
+- { type: coe, index: 0x1C32, subindex: 2, transition: 0x24, ca: 0, data: "00127a00" }  # cycle time in ns (8000000ns) because heinzmann uses 16ms cycle
+- { type: coe, index: 0x1C32, subindex: 8, transition: 0x24, ca: 0, data: "0000" }      # command
+- { type: coe, index: 0x1C32, subindex: 0, transition: 0x24, ca: 0, data: "20" }    
+
+- { type: coe, index: 0x1C33, subindex: 0, transition: 0x24, ca: 0, data: "00" }
+- { type: coe, index: 0x1C33, subindex: 1, transition: 0x24, ca: 0, data: "2200" }      # sync mode, 0x22 - sm2 event, 3 - sync1
+- { type: coe, index: 0x1C33, subindex: 2, transition: 0x24, ca: 0, data: "00127a00" }  # cycle time in ns (8000000ns)
+- { type: coe, index: 0x1C33, subindex: 8, transition: 0x24, ca: 0, data: "0000" }      # command
+- { type: coe, index: 0x1C33, subindex: 0, transition: 0x24, ca: 0, data: "20" }
+
+- { type: coe, index: 0xF800, subindex: 0,  transition: 0x24, ca: 0, data: "00" }
+- { type: coe, index: 0xF800, subindex: 1,  transition: 0x24, ca: 0, data: "7F" }       # master node address   127
+- { type: coe, index: 0xF800, subindex: 2,  transition: 0x24, ca: 0, data: "02" }       # baudrate  500kbits
+- { type: coe, index: 0xF800, subindex: 3,  transition: 0x24, ca: 0, data: "8000" }     # cob id sync 0x0080
+- { type: coe, index: 0xF800, subindex: 4,  transition: 0x24, ca: 0, data: "401f0000" } # sync cycle time 8000us
+- { type: coe, index: 0xF800, subindex: 6,  transition: 0x24, ca: 0, data: "00" }       # slave mode 
+- { type: coe, index: 0xF800, subindex: 7,  transition: 0x24, ca: 0, data: "00" }       # pdo align 
+- { type: coe, index: 0xF800, subindex: 8,  transition: 0x24, ca: 0, data: "00" }       # reserved
+- { type: coe, index: 0xF800, subindex: 9,  transition: 0x24, ca: 0, data: "00" }       # reserved
+- { type: coe, index: 0xF800, subindex: 14, transition: 0x24, ca: 0, data: "1E" }       # txpdo delay
+- { type: coe, index: 0xF800, subindex: 15, transition: 0x24, ca: 0, data: "6400" }     # can message queue size
+- { type: coe, index: 0xF800, subindex: 0,  transition: 0x24, ca: 0, data: "11" }
+
+- { type: coe, index: 0x8000, subindex: 0,  transition: 0x24, ca: 0, data: "00" }
+- { type: coe, index: 0x8000, subindex: 1,  transition: 0x24, ca: 0, data: "0000" }
+- { type: coe, index: 0x8000, subindex: 32, transition: 0x24, ca: 0, data: "0800" }     # Flags
+- { type: coe, index: 0x8000, subindex: 33, transition: 0x24, ca: 0, data: "0A" }       # Rx queue size
+- { type: coe, index: 0x8000, subindex: 34, transition: 0x24, ca: 0, data: "0A" }       # Tx queue size
+- { type: coe, index: 0x8000, subindex: 35, transition: 0x24, ca: 0, data: "9600" }
+- { type: coe, index: 0x8000, subindex: 36, transition: 0x24, ca: 0, data: "9600" }
+- { type: coe, index: 0x8000, subindex: 0,  transition: 0x24, ca: 0, data: "24" }
+
+- { type: coe, index: 0x8001, subindex: 0,  transition: 0x24, ca: 1, data: "010000000000FFFFFF1F" }
