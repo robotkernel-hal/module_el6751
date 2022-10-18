@@ -179,6 +179,7 @@ class el6751 :
         std::string pd_inputs_device;               //!< process data device with inputs
         std::string pd_outputs_device;              //!< process data device with outputs
         std::list<std::string> slave_stream_names;  //!< name of slave modules
+        std::string vcan_name;
 
         robotkernel::stream_map_t streams;
 
