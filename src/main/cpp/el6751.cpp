@@ -260,7 +260,7 @@ int el6751::set_state(module_state_t state) {
             }
 
             if (vcan_name != "") {
-                streams[name] = make_shared<vcan_stream>(shared_from_this(), vcan_name);
+                streams[vcan_name] = make_shared<vcan_stream>(shared_from_this(), vcan_name);
             }
 
             if (state == module_state_preop)
