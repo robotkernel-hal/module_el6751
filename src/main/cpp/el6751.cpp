@@ -116,8 +116,9 @@ class vcan_stream :
             if (local_ret > 0) {
                 ssize_t rd_bytes = ::read(vcan_fd, &recv_frame, sizeof(struct can_frame));
 
-                if (rd_bytes == sizeof(struct can_frame)) {
+                if (rd_bytes > 0) {// sizeof(struct can_frame)) {
                     frame->hdr = recv_frame.can_id;
+                    frame->rtr = 0;
                     frame->dlc = recv_frame.can_dlc;
                     memcpy(&frame->data[0], &recv_frame.data[0], 8);
                     return sizeof(can::frame);
@@ -423,9 +424,29 @@ void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len,
         if (extended_mode) {
             can_message_29bit_tx_t& msg = ((can_message_29bit_tx_t *)&can_pdout->msg)[msg_cnt++];
             msg.from_can_frame(frame);
+            //log(verbose, "got pad %X, len %X, cobid %X, data %X %X %X %X %X %X %X %X\n", 
+            //        msg.pad, msg.len, msg.cobid, 
+            //        msg.data[0], 
+            //        msg.data[1], 
+            //        msg.data[2], 
+            //        msg.data[3], 
+            //        msg.data[4], 
+            //        msg.data[5], 
+            //        msg.data[6], 
+            //        msg.data[7]);
         } else {
             can_message_11bit_tx_t& msg = ((can_message_11bit_tx_t *)&can_pdout->msg)[msg_cnt++];
             msg.from_can_frame(frame);
+            //log(verbose, "got pad %X, cobid %X, data %X %X %X %X %X %X %X %X\n", 
+            //        msg.pad, msg.cobid, 
+            //        msg.data[0], 
+            //        msg.data[1], 
+            //        msg.data[2], 
+            //        msg.data[3], 
+            //        msg.data[4], 
+            //        msg.data[5], 
+            //        msg.data[6], 
+            //        msg.data[7]);
         }
         
         if (msg_cnt >= can_pdout_bufcnt)

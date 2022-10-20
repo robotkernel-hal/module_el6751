@@ -79,7 +79,7 @@ class el6751 :
             void from_can_frame(can::frame_t& frame) {
                 cobid = 
                     ((frame.hdr & 0x07FF) << 5) | 
-                    ((frame.rtr << 4)) |
+                    ((frame.rtr & 0x01) << 4) |
                     ((frame.dlc & 0x000F));
                 memcpy(data, frame.data, 8);
             }
