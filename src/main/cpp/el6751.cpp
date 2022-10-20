@@ -39,6 +39,8 @@
 #include <sys/uio.h>
 #include <net/if.h>
 
+#include <poll.h>
+
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
@@ -104,13 +106,22 @@ class vcan_stream :
             can::frame *frame = (can::frame *)buf;
             struct can_frame recv_frame;
 
-            ssize_t rd_bytes = ::read(vcan_fd, &recv_frame, sizeof(struct can_frame));
+            struct pollfd pollset;
+            pollset.fd = vcan_fd;
+            pollset.events = POLLIN;
+            pollset.revents = 0;
 
-            if (rd_bytes == sizeof(struct can_frame)) {
-                frame->hdr = recv_frame.can_id;
-                frame->dlc = recv_frame.can_dlc;
-                memcpy(&frame->data[0], &recv_frame.data[0], 8);
-                return sizeof(can::frame);
+            int local_ret = poll(&pollset, 1, 0);
+
+            if (local_ret > 0) {
+                ssize_t rd_bytes = ::read(vcan_fd, &recv_frame, sizeof(struct can_frame));
+
+                if (rd_bytes == sizeof(struct can_frame)) {
+                    frame->hdr = recv_frame.can_id;
+                    frame->dlc = recv_frame.can_dlc;
+                    memcpy(&frame->data[0], &recv_frame.data[0], 8);
+                    return sizeof(can::frame);
+                }
             }
 
             return 0;
