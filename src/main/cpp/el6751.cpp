@@ -328,13 +328,17 @@ void el6751::tick() {
             pdin_handler_can(pdin_ptr, el6751_pdin->length, 
                     pdout_ptr, el6751_pdout->length);
 
-            if (state == module_state_op)
-                pdout_handler_can(pdin_ptr, el6751_pdin->length, 
-                        pdout_ptr, el6751_pdout->length);
+	    bool do_push = false;
+            if (state == module_state_op) {
+                do_push = pdout_handler_can(pdin_ptr, el6751_pdin->length, 
+                        pdout_ptr, el6751_pdout->length) != 0;
+	    }
 
-            el6751_pdout->push(el6751_pdout_hash);
-            if (el6751_pdout_trigger)
-                el6751_pdout_trigger->trigger_modules();
+	    if (do_push) {
+	            el6751_pdout->push(el6751_pdout_hash);
+        	    if (el6751_pdout_trigger)
+                	el6751_pdout_trigger->trigger_modules();
+	    }
 
             break;
     }
@@ -391,12 +395,13 @@ void el6751::pdin_handler_can(uint8_t *pdin, size_t pdin_len,
     can_pdout->rx_cnt = ++local_rx_cnt;
 }
 
-void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len, 
+int el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len, 
                 uint8_t *pdout, size_t pdout_len)
 {
     if (    (pdin_len < sizeof(can_interface_t)) ||
-            (pdout_len == 0))
-        return; // no process data available
+            (pdout_len == 0)) {
+        return 0; // no process data available
+    }	
 
     auto can_pdin  = (can_pdin_t *)&pdin[0];
     auto can_pdout = (can_pdout_t *)&pdout[0];
@@ -406,7 +411,7 @@ void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len,
 
     if (can_pdout->tx_cnt != can_pdin->tx_cnt) {
         can_pdout->tx_cnt = local_tx_cnt;
-        return; // no frames to send
+        return 0; // no frames to send
     }
 
     unsigned msg_cnt = 0;
@@ -454,9 +459,11 @@ void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len,
     }
 
     if (msg_cnt) {
-        log(verbose, "sending %d can frames\n", msg_cnt);
         can_pdout->msg_cnt = msg_cnt;
         can_pdout->tx_cnt = ++local_tx_cnt;
+        log(verbose, "sending %d can frames, tx_cnt %d, local_tx_cnt %d\n", msg_cnt, can_pdout->tx_cnt, local_tx_cnt);
     }
+
+    return msg_cnt;
 }
 

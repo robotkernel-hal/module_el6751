@@ -222,7 +222,7 @@ class el6751 :
          * \param[in,out]   pdout     Pointer to process data outputs.
          * \param[in]       pdout_len Length of process data outputs.
          */
-        void pdout_handler_can(uint8_t *pdin, size_t pdin_len, 
+        int pdout_handler_can(uint8_t *pdin, size_t pdin_len, 
                 uint8_t *pdout, size_t pdout_len);
 };
 
