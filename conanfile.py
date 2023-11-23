@@ -1,10 +1,13 @@
-from conans import tools, python_requires
+from conan import ConanFile
 
-base = python_requires("conan_template/[~=5]@robotkernel/stable")
+class MainProject(ConanFile):
+    python_requires = "conan_template/[~=5]@robotkernel/stable"
+    python_requires_extend = "conan_template.RobotkernelConanFile"
 
-class MainProject(base.RobotkernelConanFile):
     name = "module_el6751"
+    url = "https://rmc-github.robotic.dlr.de/robotkernel/module_el6751.git"
     description = "robotkernel-5 is a modular, easy configurable hardware abstraction framework"
-    exports_sources = ["*", "!.gitignore"] + ["!%s" % x for x in tools.Git().excluded_files()]
-    requires = "robotkernel/[~=5]@robotkernel/stable"
+    exports_sources = ["*", "!.gitignore"]
 
+    def requirements(self):
+        self.requires("robotkernel/[~=5]@robotkernel/stable")
