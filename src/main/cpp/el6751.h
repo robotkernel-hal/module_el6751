@@ -66,86 +66,11 @@ class el6751 :
     public robotkernel::pd_provider
 {    
     public:
-        //! el6751 specific can message - 11 bit cobid format
-        typedef struct PACK can_message_11bit_tx {
-            uint16_t pad;
-            uint16_t cobid;
-            uint8_t data[8];
-
-            //! assign data from std can frame
-            /*!
-             * \param frame input can frame
-             */
-            void from_can_frame(can::frame_t& frame) {
-                cobid = 
-                    ((frame.hdr & 0x07FF) << 5) | 
-                    ((frame.rtr & 0x01) << 4) |
-                    ((frame.dlc & 0x000F));
-                memcpy(data, frame.data, 8);
-            }
-        } PACK can_message_11bit_tx_t;
-        
-        typedef struct PACK can_message_11bit_rx {
-            uint16_t cobid;
-            uint8_t data[8];
-
-            //! decode el6751 can frame to std can frame
-            /*!
-             * \return std can frame
-             */
-            can::frame_t to_can_frame() {
-                can::frame_t frame = can::frame_t();
-                frame.dlc          = cobid & 0x000F;
-                frame.rtr          = (cobid & 0x0010) >> 4;
-                frame.hdr          = (cobid & 0xFFE0) >> 5;
-                memcpy(frame.data, data, 8);
-                return frame;
-            }
-        } PACK can_message_11bit_rx_t;
-
-        //! el6751 specific can message - 29 bit cobid format
-        typedef struct PACK can_message_29bit_tx {
-            uint16_t pad;
-            uint16_t len;
-            uint32_t cobid;
-            uint8_t data[8];
-
-            //! assign data from std can frame
-            /*!
-             * \param frame input can frame
-             */
-            void from_can_frame(can::frame_t& frame) {
-                len   = frame.dlc;
-                cobid = frame.hdr | (frame.rtr << 30);
-                memcpy(data, frame.data, 8);
-            }
-        } PACK can_message_29bit_tx_t;
-        
-        typedef struct PACK can_message_29bit_rx {
-            uint16_t len;
-            uint32_t cobid;
-            uint8_t data[8];
-
-            //! decode el6751 can frame to std can frame
-            /*!
-             * \return std can frame
-             */
-            can::frame_t to_can_frame() {
-                can::frame_t frame = can::frame_t();
-                frame.dlc          = len;
-                frame.rtr          = cobid & CAN_COB_29BIT_RTR ? 1 : 0;
-                frame.hdr          = cobid & ~CAN_COB_29BIT_RTR;
-                memcpy(frame.data, data, 8);
-                return frame;
-            }
-        } PACK can_message_29bit_rx_t;
-
         typedef struct PACK can_pdin {
             uint16_t tx_cnt;
             uint16_t rx_cnt;
             uint16_t msg_cnt;
-            uint16_t tmp;
-            uint8_t  msg;
+            uint8_t  msg[0];
         } PACK can_pdin_t;
 
         typedef struct PACK can_interface {
@@ -161,11 +86,14 @@ class el6751 :
             uint16_t tx_cnt;
             uint16_t rx_cnt;
             uint16_t msg_cnt;
-            uint8_t  msg;
+            uint8_t  msg[0];
         } PACK can_pdout_t;
 
         uint16_t local_tx_cnt, local_rx_cnt;
         bool extended_mode;
+        bool with_padding;
+        int tx_buf_cnt;
+        int rx_buf_cnt;
 
         can_interface_t local_can_interface;//! local copy of caninterface 
 

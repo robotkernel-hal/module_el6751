@@ -181,6 +181,9 @@ el6751::el6751(const std::string& name, const YAML::Node& node) :
     pd_outputs_device = get_as<string>(node, "pd_outputs_device");
 
     extended_mode     = get_as<bool>  (node, "extended_mode", true);
+    with_padding      = get_as<bool>  (node, "with_padding", true);
+    tx_buf_cnt        = get_as<int>   (node, "tx_buf_cnt", 10);
+    rx_buf_cnt        = get_as<int>   (node, "rx_buf_cnt", 10);
 
     if (node["slave_streams"]) {
         // parsing slave configurations
@@ -377,14 +380,34 @@ void el6751::pdin_handler_can(uint8_t *pdin, size_t pdin_len,
 
     log(verbose, "received %d can frames\n", can_pdin->msg_cnt);
 
+    uint8_t *act_msg = &can_pdin->msg[0];
+    if (with_padding) {
+        act_msg += 2;
+    }
+
     for (int i = 0; i < can_pdin->msg_cnt; ++i) {
         can::frame_t frame;
 
         // decode to std can frame
-        if (extended_mode)
-            frame = ((can_message_29bit_rx_t *)&can_pdin->msg)[i].to_can_frame();
-        else
-            frame = ((can_message_11bit_rx_t *)&can_pdin->msg)[i].to_can_frame();
+        if (extended_mode) {
+            uint32_t cobid = *((uint32_t *)&act_msg[2]);
+            
+            frame.dlc = *((uint16_t *)&act_msg[0]);
+            frame.rtr = cobid & CAN_COB_29BIT_RTR ? 1 : 0;
+            frame.hdr = cobid & ~CAN_COB_29BIT_RTR;
+
+            memcpy(frame.data, &act_msg[6], 8);
+
+            act_msg += 14;
+        } else {
+            uint16_t cobid = *((uint16_t *)&act_msg[0]);
+            frame.dlc = cobid & 0x000F;
+            frame.rtr = (cobid & 0x0010) >> 4;
+            frame.hdr = (cobid & 0xFFE0) >> 5;
+            memcpy(frame.data, &act_msg[2], 8);
+
+            act_msg += 10;
+        }
 
         // process received frame
         for (const auto& kv : streams) {
@@ -407,9 +430,6 @@ void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len,
 
     auto can_pdin  = (can_pdin_t *)&pdin[0];
     auto can_pdout = (can_pdout_t *)&pdout[0];
-    unsigned can_pdout_bufcnt = extended_mode ?
-        (pdout_len - 6) / sizeof(can_message_29bit_tx_t) : 
-        (pdout_len - 6) / sizeof(can_message_11bit_tx_t);
 
     // reset message count to ensure if there's nothing to send, nothing will be sent!
     can_pdout->msg_cnt = 0;
@@ -423,6 +443,8 @@ void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len,
     int rd;
     can::frame_t frame;
 
+    uint8_t *act_msg = &can_pdout->msg[0];
+
     // process received frame
     for (const auto& kv : streams) {
         sp_stream_t m = kv.second;
@@ -431,35 +453,29 @@ void el6751::pdout_handler_can(uint8_t *pdin, size_t pdin_len,
         if (rd == 0)
             continue; // next slave    
 
+        if (with_padding) {
+            act_msg += 2;
+        }
+
         if (extended_mode) {
-            can_message_29bit_tx_t& msg = ((can_message_29bit_tx_t *)&can_pdout->msg)[msg_cnt++];
-            msg.from_can_frame(frame);
-            //log(verbose, "got pad %X, len %X, cobid %X, data %X %X %X %X %X %X %X %X\n", 
-            //        msg.pad, msg.len, msg.cobid, 
-            //        msg.data[0], 
-            //        msg.data[1], 
-            //        msg.data[2], 
-            //        msg.data[3], 
-            //        msg.data[4], 
-            //        msg.data[5], 
-            //        msg.data[6], 
-            //        msg.data[7]);
+            *((uint16_t *)&act_msg[0]) = frame.dlc;
+            *((uint32_t *)&act_msg[2]) = frame.hdr | (frame.rtr << 30);
+            memcpy(&act_msg[6], frame.data, 8);
+
+            act_msg += 14;
+            msg_cnt++;
         } else {
-            can_message_11bit_tx_t& msg = ((can_message_11bit_tx_t *)&can_pdout->msg)[msg_cnt++];
-            msg.from_can_frame(frame);
-            //log(verbose, "got pad %X, cobid %X, data %X %X %X %X %X %X %X %X\n", 
-            //        msg.pad, msg.cobid, 
-            //        msg.data[0], 
-            //        msg.data[1], 
-            //        msg.data[2], 
-            //        msg.data[3], 
-            //        msg.data[4], 
-            //        msg.data[5], 
-            //        msg.data[6], 
-            //        msg.data[7]);
+            *((uint16_t *)&act_msg[0]) = 
+                ((frame.hdr & 0x07FF) << 5) | 
+                ((frame.rtr & 0x01) << 4) |
+                ((frame.dlc & 0x000F));
+            memcpy(&act_msg[2], frame.data, 8);
+
+            act_msg += 10;
+            msg_cnt++;
         }
         
-        if (msg_cnt >= can_pdout_bufcnt)
+        if (msg_cnt >= rx_buf_cnt)
             break;
     }
 
