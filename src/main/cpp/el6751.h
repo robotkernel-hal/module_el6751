@@ -61,9 +61,7 @@ namespace beckhoff {
 class el6751 : 
     public std::enable_shared_from_this<el6751>,
     public robotkernel::module_base, 
-    public robotkernel::trigger, 
-    public robotkernel::pd_consumer,
-    public robotkernel::pd_provider
+    public robotkernel::trigger
 {    
     public:
         typedef struct PACK can_pdin {
@@ -92,17 +90,16 @@ class el6751 :
         uint16_t local_tx_cnt, local_rx_cnt;
         bool extended_mode;
         bool with_padding;
-        int tx_buf_cnt;
-        int rx_buf_cnt;
+        unsigned int tx_buf_cnt;
+        unsigned int rx_buf_cnt;
 
         can_interface_t local_can_interface;//! local copy of caninterface 
 
-        robotkernel::sp_process_data_t el6751_pdin;
-        robotkernel::sp_trigger_t el6751_pdin_trigger;
-        std::size_t el6751_pdin_hash;
-        robotkernel::sp_process_data_t el6751_pdout;
-        robotkernel::sp_trigger_t el6751_pdout_trigger;
-        std::size_t el6751_pdout_hash;
+        robotkernel::sp_process_data_t el6751_pdin = nullptr;
+        robotkernel::sp_pd_consumer_t el6751_pdin_consumer = nullptr;
+
+        robotkernel::sp_process_data_t el6751_pdout = nullptr;
+        robotkernel::sp_pd_provider_t el6751_pdout_provider = nullptr;
 
         std::string pd_inputs_device;               //!< process data device with inputs
         std::string pd_outputs_device;              //!< process data device with outputs

@@ -1,0 +1,31 @@
+The **module_el6751** is a robotkernel-5 handler module for the
+[Beckhoff EtherCAT Terminal
+EL6751](https://www.beckhoff.de/default.asp?ethercat/el6751.htm). That
+Terminal enables within an EtherCAT Terminal network the integration of
+any CANopen devices and act as CAN/CANopen master. In addition, general
+CAN messages can be sent or received -- without having to bother with
+CAN frames in the applications program.
+
+# Configuration
+
+The configuration for the module requires the specification of el6751\'s
+process data inputs and outputs. Furthermore, the CAN/CANopen handler
+modules will get received CAN messages and asked for messages which need
+to be sent.
+
+```yaml
+name: my_el6751_terminal
+so_file: libmodule_el6751.so
+config:
+  pd_inputs_device: ecat.slave_2.inputs.pd      # process data inputs of el6751 slave
+  pd_outputs_device: ecat.slave_2.outputs.pd    # process data outputs of el6751 slave
+  slave_modules: [ module_1, module_2 ]         # names of can slave modules packets 
+                                                # will be sent to/received from
+depends: [ ecat, module_1, module_2 ]           # put all modules on depend list
+```
+
+The modules internal processing routines will be called automatically
+each time new process data is written to *pd_inputs_device*. After that,
+the trigger of *pd_outputs_device* will be called.
+
+[el6751](Category:Robotkernel-5 "wikilink")

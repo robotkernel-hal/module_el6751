@@ -6,8 +6,8 @@ class MainProject(ConanFile):
 
     name = "module_el6751"
     url = "https://rmc-github.robotic.dlr.de/robotkernel/module_el6751.git"
-    description = "robotkernel-5 is a modular, easy configurable hardware abstraction framework"
+    description = ""
     exports_sources = ["*", "!.gitignore"]
 
     def requirements(self):
-        self.requires("robotkernel/[~=5]@robotkernel/stable")
+        self.requires("robotkernel/[~6]@robotkernel/unstable")
