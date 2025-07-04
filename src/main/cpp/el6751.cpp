@@ -200,114 +200,59 @@ el6751::~el6751() {
     set_state(module_state_init);
 }
 
-        
-//! set module state machine to defined state
-/*!
-  \param state requested state
-  \return success or failure
-  */
-int el6751::set_state(module_state_t state) {            
-    kernel& k = *kernel::get_instance();
+//! State transition from SAFEOP to PREOP
+void el6751::set_state_safeop_2_preop() {
+    // ====> stop receiving measurements
+    robotkernel::remove_device(shared_from_this());
 
-    // get transition
-    uint32_t transition = GEN_STATE(this->state, state);
+    if (el6751_pdin->trigger_dev)
+        el6751_pdin->trigger_dev->remove_trigger(shared_from_this());
 
-    switch (transition) {
-        case op_2_safeop:
-        case op_2_preop:
-        case op_2_init:
-        case op_2_boot:
-            // ====> stop sending commands
-            if (state == module_state_safeop)
-                break;
-        case safeop_2_preop:
-        case safeop_2_init:
-        case safeop_2_boot:
-            // ====> stop receiving measurements
-            k.remove_device(shared_from_this());
+    el6751_pdin->reset_consumer(el6751_pdin_consumer);
+    el6751_pdin_consumer = nullptr;
+    el6751_pdin = nullptr;
 
-            if (el6751_pdin->trigger_dev)
-                el6751_pdin->trigger_dev->remove_trigger(shared_from_this());
+    el6751_pdout->reset_provider(el6751_pdout_provider);
+    el6751_pdout_provider = nullptr;
+    el6751_pdout = nullptr;
+}
 
-            el6751_pdin->reset_consumer(el6751_pdin_consumer);
-            el6751_pdin_consumer = nullptr;
-            el6751_pdin = nullptr;
+//! State transition from PREOP to INIT
+void el6751::set_state_preop_2_init() {
+    streams.clear();
+}
 
-            el6751_pdout->reset_provider(el6751_pdout_provider);
-            el6751_pdout_provider = nullptr;
-            el6751_pdout = nullptr;
+//! State transition from INIT to PREOP
+void el6751::set_state_init_2_preop() {
+    for (const auto& name : slave_stream_names) {
+        sp_stream_t m = robotkernel::get_device<stream>(name);
 
-            if (state == module_state_preop)
-                break;
-        case preop_2_init:
-        case preop_2_boot:
-            // ====> deinit devices
-            streams.clear();
-        case init_2_init:
-            // ====> do nothing
-            if (state == module_state_init)
-                break;
-        case init_2_boot:
-            break;
-        case boot_2_init:
-        case boot_2_preop:
-        case boot_2_safeop:
-        case boot_2_op:
-            // ====> do nothing
-            if (state == module_state_init)
-                break;
-        case init_2_op:
-        case init_2_safeop:
-        case init_2_preop:
-            // ====> get device modules
-            for (const auto& name : slave_stream_names) {
-                sp_stream_t m = k.get_stream(name);
+        if (!m)
+            throw str_exception("[module_el6751] stream %s not found\n", name.c_str());
 
-                if (!m)
-                    throw str_exception("[module_el6751] stream %s not found\n", name.c_str());
-
-                streams[name] = m;
-            }
-
-            if (vcan_name != "") {
-                streams[vcan_name] = make_shared<vcan_stream>(shared_from_this(), vcan_name);
-            }
-
-            if (state == module_state_preop)
-                break;
-        case preop_2_op:
-        case preop_2_safeop: {
-            // ====> get el6751 process data
-            el6751_pdin = k.get_process_data(pd_inputs_device);
-            el6751_pdin_consumer = make_shared<pd_consumer>(name + "." + el6751_pdin->id());
-            el6751_pdin->set_consumer(el6751_pdin_consumer);
-            if (el6751_pdin->trigger_dev) {
-                el6751_pdin->trigger_dev->add_trigger(shared_from_this());
-            }
-
-            el6751_pdout = k.get_process_data(pd_outputs_device);
-            el6751_pdout_provider = make_shared<pd_provider>(name + "." + el6751_pdout->id());
-            el6751_pdout->set_provider(el6751_pdout_provider);
-
-            k.add_device(shared_from_this());
-
-            if (state == module_state_safeop)
-                break;
-        }
-        case safeop_2_op:
-            // ====> start sending commands
-            break;
-        case op_2_op:
-        case safeop_2_safeop:
-        case preop_2_preop:
-            // ====> do nothing
-            break;
-
-        default:
-            break;
+        streams[name] = m;
     }
 
-    return (this->state = state);
+    if (vcan_name != "") {
+        streams[vcan_name] = make_shared<vcan_stream>(shared_from_this(), vcan_name);
+    }
+}
+
+//! State transition from PREOP to SAFEOP
+void el6751::set_state_preop_2_safeop() {
+    // ====> get el6751 process data
+    el6751_pdin = robotkernel::get_device<process_data>(pd_inputs_device);
+    el6751_pdin_consumer = make_shared<pd_consumer>(name + "." + el6751_pdin->id());
+    el6751_pdin->set_consumer(el6751_pdin_consumer);
+    if (el6751_pdin->trigger_dev) {
+        el6751_pdin->trigger_dev->add_trigger(shared_from_this());
+    }
+
+    el6751_pdout = robotkernel::get_device<process_data>(pd_outputs_device);
+    el6751_pdout_provider = make_shared<pd_provider>(name + "." + el6751_pdout->id());
+    el6751_pdout->set_provider(el6751_pdout_provider);
+
+    robotkernel::add_device(shared_from_this());
 }
 
 //! module trigger callback

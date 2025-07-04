@@ -24,11 +24,9 @@
 #ifndef __EL6751_H__
 #define __EL6751_H__
 
-#include "robotkernel/kernel.h"
-#include "robotkernel/module.h"
 #include "robotkernel/module_base.h"
-#include "robotkernel/module_intf.h"
 #include "robotkernel/stream.h"
+#include "robotkernel/process_data.h"
 
 #define PACK __attribute__((__packed__)) 
 
@@ -117,17 +115,22 @@ class el6751 :
         //! destruction 
         ~el6751();
 
-        //! set module state machine to defined state
-        /*!
-          \param state requested state
-          \return success or failure
-          */
-        int set_state(module_state_t state);
+        //! State transition from SAFEOP to PREOP
+        virtual void set_state_safeop_2_preop() override;
+
+        //! State transition from PREOP to INIT
+        virtual void set_state_preop_2_init() override;
+
+        //! State transition from INIT to PREOP
+        virtual void set_state_init_2_preop() override;
+
+        //! State transition from PREOP to SAFEOP
+        virtual void set_state_preop_2_safeop() override;
 
         //! module trigger callback
         /*!
         */
-        void tick();
+        virtual void tick() override;
     
     private:
         //! Process data input callback.
