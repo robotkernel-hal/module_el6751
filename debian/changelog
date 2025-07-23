@@ -1,0 +1,168 @@
+module-el6751 (6.0.0~pre1) unstable; urgency=low
+
+  * Merge pull request #3 from robotkernel/build-conan2_version_range
+  * build: fix version range for conan2
+  * conan2 syntax
+
+ -- Burger, Robert <robert.burger@dlr.de>  Thu, 3 Jul 2025 09:02:19 +0200
+
+module-el6751 (5.0.3) unstable; urgency=low
+
+  * fixed: receiving after last changes, sync message counters
+
+ -- Ismael Rodriguez <ismael.rodriguezbrena@dlr.de>  Thu, 10 Nov 2022 11:32:32 +0100
+
+module-el6751 (5.0.2) unstable; urgency=low
+
+  * fix: avoid exchange of triple-buffer when no packet was sent
+  * fix rtr was uninitialized in vcan mode
+  * made read on vcan non-blocking
+  * added example config for el6751 terminal
+  * del: old ptfile
+  * add: example config file
+  * fix: vcan_name in map
+  * add: vcan mode stream device
+  * switched to conan template
+  * switching to defaults
+
+ -- Ismael Rodriguez <ismael.rodriguezbrena@dlr.de>  Thu, 10 Nov 2022 10:44:35 +0100
+
+module-el6751 (5.0.1) unstable; urgency=low
+
+  * Merge branch 'release/5.0.1'
+  * added architectures
+  * added architectures
+  * added architectures
+  * added architectures
+  * fixed jenkinsfile
+  * fixed jenkinsfile
+  * added architectures
+  * added architectures
+  * build: updated build/ci files for cissy 1.0->2.0
+  * build: updated build/ci files for cissy 1.0->2.0
+  * testing new exports_sources rule
+  * testing new exports_sources rule
+  * added license file
+  * added licence file
+  * recipe test 2
+  * recipe test
+  * tried implementing 11-bit mode, switchable via config
+  * fixed version working with new el6751
+  * updated jenkins file
+  * fixed deps, added build archs
+  * updated pkg config check
+  * updated requiers
+  * added conan/jenkins stuff
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 25 Oct 2019 08:27:54 +0200
+
+module-el6751 (5.0.0) unstable; urgency=low
+
+  * prep 5.0.0
+  * fixed doc entry
+  * changes for pd_provider and pd_consumer
+  * added new README
+  * added doc und description
+  * fixed rk_library_path in lnc include file
+  * fixed lnc include file
+  * added missing m4 dependency script
+  * fixed generation of lnc include file, fixed service definition to match yaml 1.2 spec
+  * switched to triple_buffer impl
+  * fixed build with new stream devices
+  * renamed trigger() to tick()
+  * latest device name fixes
+  * fixes for latest rk changes, now using new devices
+  * namespace fixes
+  * name cleanup
+  * reworked state machine to use transitions
+  * fixed cflags
+  * fixed deps
+  * autotools build
+  * added pcfile
+  * added c++11 m4 macros
+  * added generated m4 files to gitignore
+  * removed old build files
+  * fixed string-util namespace
+  * changes for robotkernel-5
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 15 Mar 2018 13:52:48 +0100
+
+module-el6751 (4.1.0) unstable; urgency=low
+
+  * 'automated_commit'
+  * 'scripts_updated'
+  * 'scripts_updated'
+  * fixed build
+  * 'scripts_updated'
+  * 'replaced_with_default'
+  * 'scripts_updated'
+  * 'scripts_updated'
+  * 'scripts_updated'
+  * 'scripts_updated'
+  * 'scripts_updated'
+  * 'scripts_updated'
+  * "transforming"
+  * 'scripts_updated'
+  * updated scripts
+  * added submodule scripts
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 30 Nov 2016 10:28:07 +0100
+
+module-el6751 (4.0.1) unstable; urgency=low
+
+  * implemented dummy request-method to return -1 instead of throwing exception
+
+ -- Florian Schmidt <Florian.Schmidt@dlr.de>  Mon, 8 Feb 2016 08:42:24 +0000
+
+module-el6751 (4.0.0) unstable; urgency=low
+
+  * fixed archs in ptfile
+  * added documentation in ptfile
+  * added arch
+  * added ignores
+  * switched yaml-cpp 0.5.2
+  * prep 4.0.0
+  * fixed am
+  * new build structure switched to module_base
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 29 Sep 2015 07:35:22 +0000
+
+module-el6751 (3.1.1) unstable; urgency=low
+
+  * fixed el6751_log now uses name as argument fixed logging of el6751 interface errors prep 3.1.1
+
+ -- Robert Burger <robert.burger@dlr.de>  Tue, 10 Mar 2015 06:23:00 +0000
+
+module-el6751 (3.1.0) unstable; urgency=low
+
+  * removed documention does not work with reltool
+
+ -- Robert Burger <robert.burger@dlr.de>  Mon, 2 Feb 2015 09:09:29 +0000
+
+module-el6751 (3.0.2) unstable; urgency=low
+
+  * 3.0.2 release
+  * fixed buffer pointer calculated size of input and output buffer seems to work now on alfred
+
+ -- Robert Burger <robert.burger@dlr.de>  Thu, 18 Sep 2014 08:59:13 +0000
+
+module-el6751 (3.0.1) unstable; urgency=low
+
+  * fixed build
+  * added ln files
+
+ -- Robert Burger <robert.burger@dlr.de>  Wed, 17 Sep 2014 05:34:33 +0000
+
+module-el6751 (3.0.0) unstable; urgency=low
+
+  * added external scripts
+  * fixed version scheme
+  * fixed version scheme
+  * moved el6751
+  * moved key_value stuff
+  * added module doc
+  * imported el6751 from: https://rmsvn01.robotic.dlr.de/repositories/rm-users/burger_r/robotkernel/src/el6751/trunk rev : 23826
+  * creating svn directory 'https://rmsvn01.robotic.dlr.de/software/robotkernel/src/el6751/trunk' [rmpm admintool (burger_r, 2014-07-31-09-40-40)]
+
+ -- Robert Burger <robert.burger@dlr.de>  Fri, 1 Aug 2014 08:00:47 +0000
+
