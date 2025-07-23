@@ -44,13 +44,10 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
-#include <string_util/string_util.h>
-
 MODULE_DEF(module_el6751, beckhoff::el6751)
 
 using namespace std;
 using namespace robotkernel;
-using namespace string_util;
 using namespace beckhoff;
         
 class vcan_stream :
@@ -69,8 +66,8 @@ class vcan_stream :
 
             vcan_fd = socket(PF_CAN, SOCK_RAW, CAN_RAW);
             if (vcan_fd == -1) {
-                throw str_exception("socket SOCK_RAW : CAN_RAW "
-                        "failed: %s", strerror(errno));
+                throw runtime_error(string_printf("socket SOCK_RAW : CAN_RAW "
+                        "failed: %s", strerror(errno)));
             }
 
             struct ifreq ifr;
@@ -80,8 +77,8 @@ class vcan_stream :
 
             if (strcmp("any", ifr.ifr_name)) {
                 if (ioctl(vcan_fd, SIOCGIFINDEX, &ifr) < 0) {
-                    throw str_exception("get interface index failed: %s",
-                            strerror(errno));
+                    throw runtime_error(string_printf("get interface index failed: %s",
+                            strerror(errno)));
                 }
             }
 
@@ -92,7 +89,7 @@ class vcan_stream :
 
             //memset(&addr, 0, sizeof(addr));
             if (bind(vcan_fd, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-                throw str_exception("bind failed: %s\n", strerror(errno));
+                throw runtime_error(string_printf("bind failed: %s\n", strerror(errno)));
             }
         }
 
@@ -228,7 +225,7 @@ void el6751::set_state_init_2_preop() {
         sp_stream_t m = robotkernel::get_device<stream>(name);
 
         if (!m)
-            throw str_exception("[module_el6751] stream %s not found\n", name.c_str());
+            throw runtime_error(string_printf("[module_el6751] stream %s not found\n", name.c_str()));
 
         streams[name] = m;
     }
