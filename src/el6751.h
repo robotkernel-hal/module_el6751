@@ -4,25 +4,25 @@
  */
 
 /*
- * This file is part of robotkernel.
+ * This file is part of module_el6751.
  *
- * robotkernel is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * robotkernel is distributed in the hope that it will be useful,
+ * module_el6751 is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
+ * module_el6751 is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with robotkernel.  If not, see <http://www.gnu.org/licenses/>.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with module_el6751; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-
-#ifndef __EL6751_H__
-#define __EL6751_H__
+#ifndef MODULE_EL6751__EL6751_H
+#define MODULE_EL6751__EL6751_H
 
 #include "robotkernel/module_base.h"
 #include "robotkernel/stream.h"
@@ -33,9 +33,6 @@
 const static uint32_t CAN_COB_29BIT_RTR  = 0x40000000;
 
 namespace can {
-#ifdef EMACS
-}
-#endif
 
 typedef struct PACK frame {
     uint32_t hdr;
@@ -44,17 +41,11 @@ typedef struct PACK frame {
     uint8_t  data[8];
 } PACK frame_t;
 
-#ifdef EMACS
-{
-#endif
-}
+}; // namespace can
 
 #include <arpa/inet.h>
 
 namespace beckhoff {
-#ifdef EMACS
-}
-#endif
 
 class el6751 : 
     public std::enable_shared_from_this<el6751>,
@@ -154,10 +145,7 @@ class el6751 :
                 uint8_t *pdout, size_t pdout_len);
 };
 
-#ifdef EMACS
-{
-#endif
 }; // namespace beckhoff
 
-#endif // __EL6751_H__
+#endif // MODULE_EL6751__EL6751_H
 
