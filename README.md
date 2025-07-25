@@ -1,5 +1,11 @@
 # module_el6751
 
+[![Build and Publish Debian Package](https://github.com/robotkernel-hal/module_el6751/actions/workflows/build-deb.yaml/badge.svg)](https://github.com/robotkernel-hal/module_el6751/actions/workflows/build-deb.yaml)
+[![License: LGPL-V3](https://img.shields.io/badge/license-LGPL--V3-green.svg)](LICENSE)
+[![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)](#)
+[![Debian](https://img.shields.io/badge/Debian-A81D33?logo=debian&logoColor=fff)](#)
+[![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?logo=ubuntu&logoColor=white)](#)
+
 **Robotkernel handler module for the Beckhoff EL6751 EtherCAT-to-CANopen Terminal**
 
 This module provides a high-level interface for the [**Beckhoff EL6751 EtherCAT Terminal**](https://www.beckhoff.de/default.asp?ethercat/el6751.htm), enabling integration of CAN and CANopen devices within an EtherCAT-based automation system. It is designed for use with the [Robotkernel HAL](https://github.com/robotkernel-hal) framework.
