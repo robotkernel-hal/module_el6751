@@ -25,6 +25,7 @@
 #define MODULE_EL6751__EL6751_H
 
 #include "robotkernel/module_base.h"
+#include "robotkernel/trigger_base.h"
 #include "robotkernel/stream.h"
 #include "robotkernel/process_data.h"
 
@@ -50,6 +51,7 @@ namespace beckhoff {
 class el6751 : 
     public std::enable_shared_from_this<el6751>,
     public robotkernel::module_base, 
+    public robotkernel::trigger_base, 
     public robotkernel::trigger
 {    
     public:
