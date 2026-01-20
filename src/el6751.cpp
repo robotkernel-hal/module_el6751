@@ -49,6 +49,7 @@ MODULE_DEF(module_el6751, beckhoff::el6751)
 
 using namespace std;
 using namespace robotkernel;
+using namespace robotkernel::helpers;
 using namespace beckhoff;
         
 class vcan_stream :
@@ -201,10 +202,10 @@ el6751::~el6751() {
 //! State transition from SAFEOP to PREOP
 void el6751::set_state_safeop_2_preop() {
     // ====> stop receiving measurements
-    robotkernel::remove_device(shared_from_this());
+    robotkernel::remove_device(shared_from_this_as<trigger>());
 
     if (el6751_pdin->trigger_dev)
-        el6751_pdin->trigger_dev->remove_trigger(shared_from_this());
+        el6751_pdin->trigger_dev->remove_trigger(shared_from_this_as<trigger_base>());
 
     el6751_pdin->reset_consumer(el6751_pdin_consumer);
     el6751_pdin_consumer = nullptr;
@@ -232,7 +233,7 @@ void el6751::set_state_init_2_preop() {
     }
 
     if (vcan_name != "") {
-        streams[vcan_name] = make_shared<vcan_stream>(shared_from_this(), vcan_name);
+        streams[vcan_name] = make_shared<vcan_stream>(shared_from_this_as<el6751>(), vcan_name);
     }
 }
 
@@ -243,14 +244,14 @@ void el6751::set_state_preop_2_safeop() {
     el6751_pdin_consumer = make_shared<pd_consumer>(name + "." + el6751_pdin->id());
     el6751_pdin->set_consumer(el6751_pdin_consumer);
     if (el6751_pdin->trigger_dev) {
-        el6751_pdin->trigger_dev->add_trigger(shared_from_this());
+        el6751_pdin->trigger_dev->add_trigger(shared_from_this_as<trigger_base>());
     }
 
     el6751_pdout = robotkernel::get_device<process_data>(pd_outputs_device);
     el6751_pdout_provider = make_shared<pd_provider>(name + "." + el6751_pdout->id());
     el6751_pdout->set_provider(el6751_pdout_provider);
 
-    robotkernel::add_device(shared_from_this());
+    robotkernel::add_device(shared_from_this_as<trigger>());
 }
 
 //! module trigger callback

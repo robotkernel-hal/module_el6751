@@ -49,7 +49,7 @@ typedef struct PACK frame {
 namespace beckhoff {
 
 class el6751 : 
-    public std::enable_shared_from_this<el6751>,
+    public virtual robotkernel::shared_base,
     public robotkernel::module_base, 
     public robotkernel::trigger_base, 
     public robotkernel::trigger
