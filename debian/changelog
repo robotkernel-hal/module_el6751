@@ -1,4 +1,4 @@
-module-el6751 (6.0.0~pre1) unstable; urgency=low
+module-el6751 (6.0.0) stable; urgency=low
 
   * Merge pull request #3 from robotkernel/build-conan2_version_range
   * build: fix version range for conan2
